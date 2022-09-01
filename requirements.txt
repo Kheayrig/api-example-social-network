@@ -1,0 +1,9 @@
+SQLAlchemy==1.4.40
+databases==0.6.1
+pydantic==1.9.2
+uvicorn==0.18.3
+fastapi==0.81.0
+starlette==0.19.1
+asyncpg==0.26.0
+passlib==1.7.4
+jose==1.0.0
