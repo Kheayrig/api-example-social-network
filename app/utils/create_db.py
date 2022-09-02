@@ -1,6 +1,3 @@
-from app.db import base, models
-
-
 def add_all_tables():
     base.Base.metadata.create_all(bind=base.engine)
 

@@ -1,8 +1,11 @@
 from sqlalchemy import (
-    Column, DateTime, Boolean, ForeignKey, Integer, String, Text, Enum,
+    Column, DateTime, ForeignKey, Integer, String, Text, Enum,
 )
-from .base import Base
 import datetime
+
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
 class MediaExtension(Enum):
@@ -17,8 +20,8 @@ class Post(Base):
     author_id = Column(Integer, ForeignKey('aesn_users.id'), primary_key=True)
     title = Column(String, default='')
     message = Column(Text, default='')
-    has_media = Column(Boolean, default=False)
-    likes = Column(Integer, default=0)
+    media_count = Column(Integer, default=0, nullable=False)
+    likes = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -53,4 +56,3 @@ class Likes(Base):
     user_id = Column(Integer, ForeignKey('aesn_users.id'), primary_key=True)
     post_id = Column(Integer, ForeignKey('aesn_feed.id'))
     media_id = Column(Integer, ForeignKey('aesn_media.id'))
-

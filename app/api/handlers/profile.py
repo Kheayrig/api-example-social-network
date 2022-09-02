@@ -1,52 +1,37 @@
-import datetime
+from fastapi import APIRouter, Body, HTTPException, status
 
-from fastapi import APIRouter, Body, HTTPException, status, Depends
+from app.api.schema import User, ProfileSettings
+from app.api.security import get_password_hash, get_user_by_token
 
-from app.api.schema import User, Profile
-from app.db.base import UserData, DB, FeedData
-from app.api.security import get_password_hash, get_current_user
+from app.db.base import DB
+from app.db.repositories.users_repository import UserRepository
 
 router = APIRouter()
 
 
-@router.get("/profile", response_model=User)
-async def get_profile(token: str):
-    if UserData.con is None:
+@router.get("/profile", response_model=User, tags=["profile"])
+async def get_profile(access_token: str):
+    if UserRepository.con is None:
         await DB.connect_db()
-    res = get_current_user(token)
-    if res is not None:
-        user = await UserData.get_user_by_login(res.login)
-        if isinstance(user, dict):
-            del user['hash']
-            return user
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Token has been expired or revoked"
-            )
+    user = await get_user_by_token(access_token)
+    del user['hash']
+    return user
 
 
-@router.put("/profile")
-async def update_profile(token: str = Body(..., embed=True), user_info: Profile = Body(..., embed=True)):
-    if UserData.con is None:
+@router.put("/profile", tags=["profile"])
+async def update_profile(user_info: ProfileSettings = Body(..., embed=True)):
+    if UserRepository.con is None:
         await DB.connect_db()
-    token = get_current_user(token)
-    if token.login is not None:
-        user = await UserData.get_user_by_login(token.login)
-        if isinstance(user, dict):
-            await UserData.update_names(user['id'], user_info.first_name, user_info.last_name)
-            pwd = None
-            if user_info.password is not None:
-                pwd = get_password_hash(user_info.password)
-            await UserData.update_data(user['id'], user_info.login, pwd)
-            return {"message": "Information successfully changed"}
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-    else:
+    user = await get_user_by_token(user_info.access_token)
+    try:
+        await UserRepository.update_names(user['id'], user_info.first_name, user_info.last_name)
+        pwd = None
+        if user_info.password is not None:
+            pwd = get_password_hash(user_info.password)
+        await UserRepository.update_data(user['id'], user_info.login, pwd)
+        return {"message": "Information successfully changed"}
+    except Exception:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Token has been expired or revoked"
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed, try again later"
         )
