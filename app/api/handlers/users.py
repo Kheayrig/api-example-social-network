@@ -8,7 +8,10 @@ router = APIRouter()
 
 
 @router.get("/users/{user_id}", response_model=User, tags=["users"])
-async def get_user(user_id: int = 1):
+async def get_user_by_id(user_id: int = 1):
+    """
+    get user by id
+    """
     if UserRepository.con is None:
         await DB.connect_db()
     user = await UserRepository.get_user_by_id(user_id)

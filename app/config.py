@@ -16,4 +16,4 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 ALGORITHM = 'HS256'
 SECRET_KEY = 'aerfudiohkj439uji43kfu8oi32f9jo3r29j0dej09w23rewafzds'
 
-DATA_PATH = config('DATA_PATH', cast=str, default=r'D:/Progs/Py/api-example-social-network/static/')
+DATA_PATH = config('DATA_PATH', cast=str, default=r'D:/static/')

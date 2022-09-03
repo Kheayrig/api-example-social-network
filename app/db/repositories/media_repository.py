@@ -14,6 +14,7 @@ class MediaRepository(DB):
     async def add_media(cls, author_id: int, post_id: int, media: UploadFile, i: int, part_uri: str):
         """
         add a media file to post
+        :param part_uri:
         :param author_id:
         :param post_id:
         :param media:
@@ -76,7 +77,7 @@ class MediaRepository(DB):
 
         try:
             res = await cls.con.fetch(sql, post_id)
-            return list(map(UploadFile, res))
+            return list(map(dict, res))
         except Exception as e:
             print(e)
             return False
@@ -98,6 +99,11 @@ class MediaRepository(DB):
 
     @classmethod
     async def update_media_count(cls, post_id):
+        """
+        update media count variable in post
+        :param post_id:
+        :return:
+        """
         path_post_media = DATA_PATH + f"{post_id}"
         count = len(os.listdir(path_post_media))
         sql = f'update {Tables.Feed} set media_count=$1 where id=$2;'

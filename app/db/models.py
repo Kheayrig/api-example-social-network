@@ -8,12 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-class MediaExtension(Enum):
-    Png = "png"
-    Jpeg = "jpeg"
-    Jpg = "jpg"
-
-
 class Post(Base):
     __tablename__ = 'aesn_feed'
     id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
@@ -46,13 +40,14 @@ class Media(Base):
     author_id = Column(Integer, ForeignKey('aesn_users.id'))
     post_id = Column(Integer, ForeignKey('aesn_feed.id'))
     uri = Column(String, nullable=False, primary_key=True)
-    extension = Column(String, default=MediaExtension.Png)
+    extension = Column(String, default='.png')
     likes = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
 class Likes(Base):
     __tablename__ = 'aesn_likes'
-    user_id = Column(Integer, ForeignKey('aesn_users.id'), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
+    user_id = Column(Integer, ForeignKey('aesn_users.id'))
     post_id = Column(Integer, ForeignKey('aesn_feed.id'))
     media_id = Column(Integer, ForeignKey('aesn_media.id'))

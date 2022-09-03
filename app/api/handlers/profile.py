@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body, HTTPException, status
 
-from app.api.schema import User, ProfileSettings
+from app.api.schema import User, ProfileSettings, APIResponse
 from app.api.security import get_password_hash, get_user_by_token
 
 from app.db.base import DB
@@ -10,7 +10,10 @@ router = APIRouter()
 
 
 @router.get("/profile", response_model=User, tags=["profile"])
-async def get_profile(access_token: str):
+async def get_current_user(access_token: str):
+    """
+    get current user if authorized
+    """
     if UserRepository.con is None:
         await DB.connect_db()
     user = await get_user_by_token(access_token)
@@ -18,8 +21,11 @@ async def get_profile(access_token: str):
     return user
 
 
-@router.put("/profile", tags=["profile"])
+@router.put("/profile", tags=["profile"], response_model=APIResponse)
 async def update_profile(user_info: ProfileSettings = Body(..., embed=True)):
+    """
+    update profile info/settings if authorized
+    """
     if UserRepository.con is None:
         await DB.connect_db()
     user = await get_user_by_token(user_info.access_token)
@@ -29,7 +35,7 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True)):
         if user_info.password is not None:
             pwd = get_password_hash(user_info.password)
         await UserRepository.update_data(user['id'], user_info.login, pwd)
-        return {"message": "Information successfully changed"}
+        return {'status_code': status.HTTP_200_OK, 'content': 'Information successfully changed'}
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,

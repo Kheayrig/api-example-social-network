@@ -57,8 +57,8 @@ class LikeRepository(DB):
         """
         sql = f'select * from {Tables.Likes} where user_id=$1 and post_id=$2'
         try:
-            res = await cls.con.fetch(sql, user_id, post_id)
-            if len(res) == 0:
+            res = await cls.con.fetchrow(sql, user_id, post_id)
+            if res is None:
                 return False
             return True
         except Exception as e:

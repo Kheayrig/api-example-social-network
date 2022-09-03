@@ -2,7 +2,12 @@ import datetime
 from typing import Optional, List
 
 from pydantic import BaseModel, constr, Field
+from starlette import status
 
+
+class APIResponse(BaseModel):
+    status_code: int = status.HTTP_200_OK
+    content: str
 
 class UserIn(BaseModel):
     login: Optional[str] = Field(None, min_length=3, max_length=16, regex=r'[\w]')

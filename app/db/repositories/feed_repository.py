@@ -1,7 +1,6 @@
 import datetime
 
 from app.db.base import Tables, DB
-from app.db.repositories.like_repository import LikeRepository
 
 
 class FeedRepository(DB):
@@ -84,6 +83,22 @@ class FeedRepository(DB):
         try:
             res = await cls.con.fetch(sql, limit)
             return list(map(dict, res))
+        except Exception as e:
+            print(e)
+            return False
+
+    @classmethod
+    async def update_post_message_title(cls, post_id: int, new_message: str = None, new_title: str = None):
+        """
+        update post's message and/or title
+        :param post_id:
+        :param new_message:
+        :param new_title:
+        :return: True or False
+        """
+        sql = f'update {Tables.Feed} set title=$1,message=$2 where id=$3'
+        try:
+            return await cls.con.execute(sql, new_title, new_message, post_id)
         except Exception as e:
             print(e)
             return False
