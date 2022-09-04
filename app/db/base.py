@@ -43,9 +43,9 @@ class DB:
             return False
         if not await cls.connect_table(Tables.Feed, models.Post):
             return False
-        if not await cls.connect_table(Tables.Likes, models.Likes):
-            return False
         if not await cls.connect_table(Tables.Media, models.Media):
+            return False
+        if not await cls.connect_table(Tables.Likes, models.Likes):
             return False
         return True
 
