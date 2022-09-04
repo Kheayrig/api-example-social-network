@@ -4,7 +4,7 @@ import asyncpg
 from sqlalchemy import create_engine, MetaData, Enum
 from databases import Database
 
-from app.config import DATABASE_URL, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, HOST
+from app.config import DATABASE_URL, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST
 from app.db import models
 
 db = Database(DATABASE_URL)
@@ -35,7 +35,7 @@ class DB:
                 cls.con = await asyncpg.connect(url)
             else:
                 cls.con = await asyncpg.connect(database=DATABASE_NAME, user=DATABASE_USER,
-                                                password=DATABASE_PASSWORD, host=HOST, port=DATABASE_PORT)
+                                                password=DATABASE_PASSWORD, host=DATABASE_HOST, port=DATABASE_PORT)
         except Exception as er:
             print(er)
             cls.con = None
