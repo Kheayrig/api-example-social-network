@@ -2,12 +2,11 @@ import os
 
 import asyncpg
 from sqlalchemy import create_engine, MetaData, Enum
-from databases import Database
 
 from app.config import DATABASE_URL, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST
 from app.db import models
 
-db = Database(DATABASE_URL)
+
 metadata = MetaData()
 engine = create_engine(DATABASE_URL)
 
