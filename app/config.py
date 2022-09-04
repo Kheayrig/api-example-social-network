@@ -18,7 +18,6 @@ DATA_PATH = config('DATA_PATH', cast=str, default=path)
 
 #server
 HOST = config('DATABASE_HOST', cast=str, default='127.0.0.1')
-PORT = config('PORT', cast=int, default=int(os.environ.get('PORT', 8000)))
 
 #database
 DATABASE_URL = config('AESN_DATABASE_URL', cast=str,
