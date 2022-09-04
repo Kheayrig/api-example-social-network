@@ -25,5 +25,5 @@ configs - Конфиги подключения -> #server, #database, #data_pat
 <h2>Пример работы</h2>
 
 Посмотреть, как будет функционировать сервис, можно тут:
-
+https://api-example-social-network.herokuapp.com/docs
 .............
