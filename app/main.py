@@ -1,12 +1,10 @@
-import uvicorn
 from fastapi import FastAPI
 
 from app.db.base import DB
-from config import HOST, PORT
-from api.handlers.auth import router as auth_router
-from api.handlers.profile import router as profile_router
-from api.handlers.feed import router as feed_router
-from api.handlers.users import router as user_router
+from app.api.handlers.auth import router as auth_router
+from app.api.handlers.profile import router as profile_router
+from app.api.handlers.feed import router as feed_router
+from app.api.handlers.users import router as user_router
 
 app = FastAPI(title='Api-example (social network)')
 
@@ -26,5 +24,3 @@ async def shutdown_event():
     await DB.disconnect_db()
 
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", port=PORT, host=HOST, reload=True)
