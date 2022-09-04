@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from starlette.config import Config
 
 config = Config('.env')
@@ -10,11 +13,12 @@ SECRET_KEY = 'aerfudiohkj439uji43kfu8oi32f9jo3r29j0dej09w23rewafzds'
 """
 path to media storage
 """
-DATA_PATH = config('DATA_PATH', cast=str, default=r'D:/static/')
+path = os.path.join(str(Path.cwd()), 'static')
+DATA_PATH = config('DATA_PATH', cast=str, default=path)
 
 #server
 HOST = config('DATABASE_HOST', cast=str, default='127.0.0.1')
-PORT = config('PORT', cast=int, default=8000)
+PORT = config('PORT', cast=int, default=int(os.environ.get('PORT', 8000)))
 
 #database
 DATABASE_URL = config('AESN_DATABASE_URL', cast=str,
