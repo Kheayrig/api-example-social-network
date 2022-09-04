@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, Integer, String, Text, Enum,
+    Column, DateTime, ForeignKey, Integer, String, Text,
 )
 import datetime
 
@@ -26,7 +26,6 @@ class Post(Base):
 class User(Base):
     __tablename__ = 'aesn_users'
     id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
-    email = Column(String, primary_key=True, unique=True)
     login = Column(String, primary_key=True, unique=True)
     hash = Column(String)
     first_name = Column(String, default='Noname')
