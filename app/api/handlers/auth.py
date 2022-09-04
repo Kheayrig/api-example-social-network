@@ -18,7 +18,7 @@ async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     if UserRepository.con is None:
         await DB.connect_db()
     user = await UserRepository.get_user_by_login(request.username)
-    if not user:
+    if user is False:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Invalid Credentials'
