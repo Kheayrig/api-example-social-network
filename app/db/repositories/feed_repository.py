@@ -15,11 +15,12 @@ class FeedRepository(DB):
         :return: Id - success, False - post not created
         """
         time = datetime.datetime.utcnow()
+        count = 0
         if message is not None and title is not None:
             sql = f'insert into {Tables.Feed}(author_id,title,message,media_count,likes,created_at,updated_at)' \
                   f' values ($1,$2,$3,$4,$5,$6) returning id;'
             try:
-                return await cls.con.fetchval(sql, author_id, title, message, 0, 0, time, time)
+                return await cls.con.fetchval(sql, author_id, title, message, count, count, time, time)
             except Exception as e:
                 print(e)
                 return False

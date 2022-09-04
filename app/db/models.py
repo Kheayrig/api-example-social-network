@@ -14,8 +14,8 @@ class Post(Base):
     author_id = Column(Integer, ForeignKey('aesn_users.id'), primary_key=True)
     title = Column(String, default='')
     message = Column(Text, default='')
-    media_count = Column(Integer, default=0, nullable=False)
-    likes = Column(Integer, default=0, nullable=False)
+    media_count = Column(Integer, default=0)
+    likes = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
