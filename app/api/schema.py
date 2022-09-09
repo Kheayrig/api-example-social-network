@@ -9,16 +9,17 @@ class APIResponse(BaseModel):
     status_code: int = status.HTTP_200_OK
     content: str
 
+
 class UserIn(BaseModel):
-    login: Optional[str] = Field(None, min_length=3, max_length=16, regex=r'[\w]')
+    login: Optional[str] = Field(None, min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
     password: Optional[constr(min_length=8, max_length=128)]
 
 
 class Profile(UserIn):
     first_name: Optional[str] = Field(None, min_length=2, max_length=35,
-                            regex=r'^([^0-9!\@#$%^&(),.+=/\\{}\[\]?><":;|~*]*)$')
+                            regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     last_name: Optional[str] = Field(None, min_length=2, max_length=35,
-                           regex=r'^([^0-9!\@#$%^&(),.+=/\\{}\[\]?><":;|~*]*)$')
+                           regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
 
 
 class ProfileSettings(Profile):
@@ -62,9 +63,9 @@ class PostCreate(BaseModel):
 
 class User(BaseModel):
     id: Optional[str] = None
-    login: Optional[str] = None
+    login: Optional[str] = Field(None, min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
     first_name: Optional[str] = Field(None, min_length=2, max_length=35,
-                                      regex=r'^([^0-9!\@#$%^&(),.+=/\\{}\[\]?><":;|]*)$')
+                                      regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     last_name: Optional[str] = Field(None, min_length=2, max_length=35,
-                                     regex=r'^([^0-9!\@#$%^&(),.+=/\\{}\[\]?><":;|]*)$')
+                                     regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     created_at: datetime.datetime

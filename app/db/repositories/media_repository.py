@@ -2,13 +2,15 @@ import datetime
 import os
 import shutil
 from typing import List
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException, status
 
 from app.config import DATA_PATH
-from app.db.base import Tables, DB
+from app.db.base import DB
+from app.db.repositories.feed_repository import FeedRepository
 
 
 class MediaRepository(DB):
+    table_name: str = 'aesn_media'
 
     @classmethod
     async def add_media(cls, author_id: int, post_id: int, media: UploadFile, i: int, part_uri: str):
@@ -29,15 +31,21 @@ class MediaRepository(DB):
                 f.write(data)
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
         created_at = datetime.datetime.utcnow()
-        sql = f'insert into {Tables.Media}(author_id,post_id,uri,extension,likes,created_at) values ($1,$2,$3,$4,$5,$6);'
+        sql = f'insert into {cls.table_name}(author_id,post_id,uri,extension,likes,created_at) values ($1,$2,$3,$4,$5,$6)'
         try:
             return await cls.con.execute(sql, author_id, post_id, uri, extension, 0, created_at)
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
     @classmethod
     async def add_all_media(cls, post_id: int, author_id: int, data: List[UploadFile]):
@@ -46,7 +54,7 @@ class MediaRepository(DB):
         :param post_id:
         :param author_id:
         :param data:
-        :return: True - success, None - not all media added, False - failed
+        :return: True - success, None - not all media added
         """
         if 0 < len(data) <= 10:
             part_uri = DATA_PATH + f"{post_id}"
@@ -64,38 +72,31 @@ class MediaRepository(DB):
                     is_added = None
             await cls.update_media_count(post_id)
             return is_added
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='Something is wrong'
+        )
 
     @classmethod
     async def get_post_media(cls, post_id: int):
         """
         get all post's media
         :param post_id:
-        :return: list() or False
+        :return: list()
         """
-        sql = f'select * from {Tables.Media} where post_id=$1;'
+        sql = f'select * from {cls.table_name} where post_id=$1'
 
         try:
             res = await cls.con.fetch(sql, post_id)
+            if len(res) == 0:
+                return []
             return list(map(dict, res))
         except Exception as e:
             print(e)
-            return False
-
-    @classmethod
-    async def get_media(cls):
-        """
-        get all post's media
-        :return: list() or False
-        """
-        sql = f'select * from {Tables.Media}'
-
-        try:
-            res = await cls.con.fetch(sql)
-            return list(map(UploadFile, res))
-        except Exception as e:
-            print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
     @classmethod
     async def update_media_count(cls, post_id):
@@ -106,7 +107,7 @@ class MediaRepository(DB):
         """
         path_post_media = DATA_PATH + f"{post_id}"
         count = len(os.listdir(path_post_media))
-        sql = f'update {Tables.Feed} set media_count=$1 where id=$2;'
+        sql = f'update {FeedRepository.table_name} set media_count=$1 where id=$2'
 
         try:
             await cls.con.execute(sql, count, post_id)

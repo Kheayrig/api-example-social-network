@@ -1,9 +1,12 @@
 import datetime
 
-from app.db.base import Tables, DB
+from fastapi import HTTPException, status
+
+from app.db.base import DB
 
 
 class FeedRepository(DB):
+    table_name: str = 'aesn_feed'
 
     @classmethod
     async def create_post(cls, author_id: int, title: str, message: str):
@@ -17,29 +20,44 @@ class FeedRepository(DB):
         time = datetime.datetime.utcnow()
         count = 0
         if message is not None and title is not None:
-            sql = f'insert into {Tables.Feed}(author_id,title,message,media_count,likes,created_at,updated_at)' \
-                  f' values ($1,$2,$3,$4,$5,$6,$7) returning id;'
+            sql = f'insert into {cls.table_name}(author_id,title,message,media_count,likes,created_at,updated_at)' \
+                  f' values ($1,$2,$3,$4,$5,$6,$7) returning id'
             try:
                 return await cls.con.fetchval(sql, author_id, title, message, count, count, time, time)
             except Exception as e:
                 print(e)
-                return False
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail='Something is wrong'
+                )
         else:
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Not all fields filled'
+            )
 
     @classmethod
     async def get_post_by_id(cls, post_id: int):
         """
         get post by id
         :param post_id:
-        :return: dict() or False
+        :return: dict() or Exception
         """
-        sql = f"select * from {Tables.Feed} where id=$1"
+        sql = f"select * from {cls.table_name} where id=$1"
         try:
-            return dict(await cls.con.fetchrow(sql, post_id))
+            res = await cls.con.fetchrow(sql, post_id)
+            if res is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Post not found'
+                )
+            return dict(res)
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
     @classmethod
     async def get_user_posts(cls, user_id: int):
@@ -48,13 +66,21 @@ class FeedRepository(DB):
         :param user_id:
         :return: list() or False
         """
-        sql = f"select * from {Tables.Feed} where author_id=$1"
+        sql = f"select * from {cls.table_name} where author_id=$1"
         try:
             res = await cls.con.fetch(sql, user_id)
+            if len(res) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Posts not found'
+                )
             return list(map(dict, res))
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
     @classmethod
     async def get_posts(cls, limit: int = 10, page: int = 1):
@@ -65,13 +91,21 @@ class FeedRepository(DB):
         :return: list() or False
         """
         offset = page * limit
-        sql = f'select * from {Tables.Feed} limit $1 offset $2'
+        sql = f'select * from {cls.table_name} limit $1 offset $2'
         try:
             res = await cls.con.fetch(sql, limit, offset)
+            if len(res) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Posts not found'
+                )
             return list(map(dict, res))
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
     @classmethod
     async def get_recommended_posts(cls, limit: int = 10):
@@ -80,13 +114,21 @@ class FeedRepository(DB):
         :param limit: optional, default = 10
         :return: list() or False
         """
-        sql = f'select * from {Tables.Feed} order by likes desc limit $1'
+        sql = f'select * from {cls.table_name} order by likes desc limit $1'
         try:
             res = await cls.con.fetch(sql, limit)
+            if len(res) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Posts not found'
+                )
             return list(map(dict, res))
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 
     @classmethod
     async def update_post_message_title(cls, post_id: int, new_message: str = None, new_title: str = None):
@@ -97,10 +139,13 @@ class FeedRepository(DB):
         :param new_title:
         :return: True or False
         """
-        sql = f'update {Tables.Feed} set title=$1,message=$2 where id=$3'
+        sql = f'update {cls.table_name} set title=$1,message=$2 where id=$3'
         try:
             return await cls.con.execute(sql, new_title, new_message, post_id)
         except Exception as e:
             print(e)
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail='Something is wrong'
+            )
 

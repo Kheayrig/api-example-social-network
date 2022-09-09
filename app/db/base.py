@@ -1,77 +1,62 @@
-import os
-
 import asyncpg
-from sqlalchemy import create_engine, MetaData, Enum
+from fastapi import HTTPException, status
 
-from app.config import DATABASE_URL, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST
-from app.db import models
-
-
-metadata = MetaData()
-engine = create_engine(DATABASE_URL)
-
-
-class Tables(Enum):
-    Users = 'aesn_users'
-    Feed = 'aesn_feed'
-    Media = 'aesn_media'
-    Likes = 'aesn_likes'
-    Tokens = 'aesn_tokens'
+from app.config import DATABASE_URL
+from app.utils.create_db import add_all_tables
 
 
 class DB:
     con: asyncpg.connection.Connection = None
+    tablesCount: int = 4
 
     @classmethod
-    async def connect_db(cls) -> bool:
+    async def connect_db(cls):
         """
         Connect to database or create new database by repositories
         :return: True or False
         """
         try:
-            url = os.environ.get('DATABASE_URL')
-            if url:
-                cls.con = await asyncpg.connect(url)
-            else:
-                cls.con = await asyncpg.connect(database=DATABASE_NAME, user=DATABASE_USER,
-                                                password=DATABASE_PASSWORD, host=DATABASE_HOST, port=DATABASE_PORT)
+            cls.con = await asyncpg.connect(DATABASE_URL)
         except Exception as er:
             print(er)
             cls.con = None
-            return False
-        if not await cls.connect_table(Tables.Users, models.User):
-            return False
-        if not await cls.connect_table(Tables.Feed, models.Post):
-            return False
-        if not await cls.connect_table(Tables.Media, models.Media):
-            return False
-        if not await cls.connect_table(Tables.Likes, models.Likes):
-            return False
-        return True
+            raise HTTPException(
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                detail='Connection to database is failed'
+            )
+        await cls.connect_tables()
 
     @classmethod
-    async def connect_table(cls, table_name, model):
+    async def connect_tables(cls):
         """
-        connect to a table in db, create a new one by the model if table not exist
-        :param table_name:
-        :param model:
-        :return: True or False
+        connect to tables in db, create if found 0, else raise ConnectionRefusedError
+        :return: True, False, ConnectionRefusedError
         """
+
         try:
-            a = await cls.con.fetch('select exists(select * from information_schema.tables where table_name = $1)',
-                                    table_name)
+            a = await cls.con.fetch('select * from information_schema.tables')
         except Exception as er:
             print(er)
             await cls.disconnect_db()
-            return False
-        if not a[0][0]:
+            raise HTTPException(
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                detail='Connection to database is failed'
+            )
+        if len(a) == 0:
             try:
-                model.__table__.create(engine)
+                add_all_tables(DATABASE_URL)
             except Exception as er:
                 print(er)
                 await cls.disconnect_db()
-                return False
-        return True
+                raise HTTPException(
+                    status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                    detail='Connection to tables is failed'
+                )
+        elif len(a) != cls.tablesCount:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Found less than {cls.tablesCount} tables!"
+            )
 
     @classmethod
     async def disconnect_db(cls):
