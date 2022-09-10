@@ -52,12 +52,7 @@ class DB:
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                     detail='Connection to tables is failed'
                 )
-        elif len(a) != cls.tablesCount:
-            print(len(a))
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Found less than {cls.tablesCount} tables!"
-            )
+
 
     @classmethod
     async def disconnect_db(cls):
