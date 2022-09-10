@@ -53,6 +53,7 @@ class DB:
                     detail='Connection to tables is failed'
                 )
         elif len(a) != cls.tablesCount:
+            print(len(a))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Found less than {cls.tablesCount} tables!"
