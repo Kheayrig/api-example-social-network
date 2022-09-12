@@ -17,10 +17,4 @@ async def get_user_by_id(user_id: int = 1):
     user = await UserRepository.get_user_by_id(user_id)
     del user['login']
     del user['hash']
-    if user is not False:
-        return {**user}
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid id"
-        )
+    return {**user}

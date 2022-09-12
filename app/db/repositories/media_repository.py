@@ -21,7 +21,7 @@ class MediaRepository(DB):
         :param post_id:
         :param media:
         :param i:
-        :return: True or False
+        :return:
         """
         extension = os.path.splitext(media.filename)[1]
         uri = part_uri + f'/{i}{extension}'
@@ -32,20 +32,13 @@ class MediaRepository(DB):
         except Exception as e:
             print(e)
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
                 detail='Something is wrong'
             )
 
         created_at = datetime.datetime.utcnow()
         sql = f'insert into {cls.table_name}(author_id,post_id,uri,extension,likes,created_at) values ($1,$2,$3,$4,$5,$6)'
-        try:
-            return await cls.con.execute(sql, author_id, post_id, uri, extension, 0, created_at)
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Something is wrong'
-            )
+        await cls.con.execute(sql, author_id, post_id, uri, extension, 0, created_at)
 
     @classmethod
     async def add_all_media(cls, post_id: int, author_id: int, data: List[UploadFile]):
@@ -54,7 +47,7 @@ class MediaRepository(DB):
         :param post_id:
         :param author_id:
         :param data:
-        :return: True - success, None - not all media added
+        :return:
         """
         if 0 < len(data) <= 10:
             part_uri = DATA_PATH + f"{post_id}"
@@ -64,17 +57,14 @@ class MediaRepository(DB):
                 shutil.rmtree(part_uri)
                 os.mkdir(part_uri)
             media_i = 0
-            is_added = True
             for media in data:
                 media_i += 1
-                res = await cls.add_media(author_id, post_id, media, media_i, part_uri)
-                if not res:
-                    is_added = None
+                await cls.add_media(author_id, post_id, media, media_i, part_uri)
             await cls.update_media_count(post_id)
-            return is_added
+            return
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail='Something is wrong'
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Media count has to be more than 0 and less than 11'
         )
 
     @classmethod
@@ -86,17 +76,10 @@ class MediaRepository(DB):
         """
         sql = f'select * from {cls.table_name} where post_id=$1'
 
-        try:
-            res = await cls.con.fetch(sql, post_id)
-            if len(res) == 0:
-                return []
-            return list(map(dict, res))
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Something is wrong'
-            )
+        res = await cls.con.fetch(sql, post_id)
+        if len(res) == 0:
+            return []
+        return list(map(dict, res))
 
     @classmethod
     async def update_media_count(cls, post_id):

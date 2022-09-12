@@ -12,7 +12,7 @@ class LikeRepository(DB):
         add like to post from user
         :param user_id:
         :param post_id:
-        :return: True or False
+        :return:
         """
         is_liked = await cls.check_if_liked(user_id, post_id)
         if is_liked:
@@ -20,14 +20,7 @@ class LikeRepository(DB):
 
         sql = f'insert into {cls.table_name}(user_id,post_id) values ($1,$2)'
 
-        try:
-            await cls.con.execute(sql, user_id, post_id)
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Something is wrong'
-            )
+        await cls.con.execute(sql, user_id, post_id)
         await cls.update_like_info(post_id)
 
     @classmethod
@@ -36,22 +29,14 @@ class LikeRepository(DB):
         remove user's like from post
         :param user_id:
         :param post_id:
-        :return: True or False
+        :return:
         """
         is_liked = await cls.check_if_liked(user_id, post_id)
         if not is_liked:
             return
 
         sql = f'delete from {cls.table_name} where user_id=$1 and post_id=$2'
-        try:
-            await cls.con.execute(sql, user_id, post_id)
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Something is wrong'
-            )
-
+        await cls.con.execute(sql, user_id, post_id)
         await cls.update_like_info(post_id)
 
     @classmethod
@@ -77,20 +62,13 @@ class LikeRepository(DB):
         """
         get all posts that user likes
         :param post_id:
-        :return: list() or 0
+        :return: list()
         """
         sql = f'select * from {cls.table_name} where post_id=$1'
-        try:
-            res = await cls.con.fetch(sql, post_id)
-            if len(res) == 0:
-                return []
-            return list(map(dict, res))
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail='Something is wrong'
-            )
+        res = await cls.con.fetch(sql, post_id)
+        if len(res) == 0:
+            return []
+        return list(map(dict, res))
 
     @classmethod
     async def update_like_info(cls, post_id: int):

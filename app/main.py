@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
+from starlette.requests import Request
 
 from app.db.base import DB
 from app.api.handlers.auth import router as auth_router
@@ -12,6 +13,20 @@ app.include_router(user_router, prefix="/v1")
 app.include_router(auth_router, prefix="/v1")
 app.include_router(feed_router, prefix="/v1")
 app.include_router(profile_router, prefix="/v1")
+
+
+@app.middleware('http')
+async def raise_server_exception(request: Request, call_next):
+    try:
+        call_next(request)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='Something is wrong, try again later'
+        )
 
 
 @app.on_event("startup")

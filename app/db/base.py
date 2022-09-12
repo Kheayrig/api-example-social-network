@@ -42,6 +42,8 @@ class DB:
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 detail='Connection to database is failed'
             )
+        print(a)
+        print(len(a))
         if len(a) == 0:
             try:
                 add_all_tables(DATABASE_URL)
