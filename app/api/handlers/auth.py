@@ -10,7 +10,7 @@ from app.db.repositories.users_repository import UserRepository
 router = APIRouter()
 
 
-@router.post('/login', tags=["auth"], response_model=APIResponse)
+@router.post('/token', tags=["auth"], response_model=APIResponse)
 async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     """
     Authorization
