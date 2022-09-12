@@ -11,14 +11,14 @@ class APIResponse(BaseModel):
 
 
 class UserIn(BaseModel):
-    login: Optional[str] = Field(None, min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
+    login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
     password: Optional[constr(min_length=8, max_length=128)]
 
 
 class Profile(UserIn):
-    first_name: Optional[str] = Field(None, min_length=2, max_length=35,
+    first_name: Optional[str] = Field(min_length=2, max_length=35,
                             regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
-    last_name: Optional[str] = Field(None, min_length=2, max_length=35,
+    last_name: Optional[str] = Field(min_length=2, max_length=35,
                            regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
 
 
@@ -26,17 +26,13 @@ class ProfileSettings(Profile):
     access_token: str
 
 
-class Token(BaseModel):
-    login: str
-
-
 class BaseFeed(BaseModel):
     title: str
     message: str
     media_count: int
     likes: int
-    id: Optional[str] = None
-    author_id: Optional[str] = None
+    id: Optional[str]
+    author_id: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
@@ -62,10 +58,10 @@ class PostCreate(BaseModel):
 
 
 class User(BaseModel):
-    id: Optional[str] = None
-    login: Optional[str] = Field(None, min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
-    first_name: Optional[str] = Field(None, min_length=2, max_length=35,
+    id: Optional[str]
+    login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
+    first_name: Optional[str] = Field(min_length=2, max_length=35,
                                       regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
-    last_name: Optional[str] = Field(None, min_length=2, max_length=35,
+    last_name: Optional[str] = Field(min_length=2, max_length=35,
                                      regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     created_at: datetime.datetime
