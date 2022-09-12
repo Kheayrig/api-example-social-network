@@ -34,7 +34,7 @@ class DB:
         """
 
         try:
-            a = await cls.con.fetch('select * from information_schema.tables where table_schema="public"')
+            a = await cls.con.fetch('select * from information_schema.tables where table_schema=public')
         except Exception as er:
             print(er)
             await cls.disconnect_db()
