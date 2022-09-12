@@ -1,8 +1,10 @@
 import datetime
 
 from fastapi import HTTPException, status
+from starlette.responses import JSONResponse
 
 from app.db.base import DB
+from app.db.repositories.media_repository import MediaRepository
 
 
 class FeedRepository(DB):
@@ -28,6 +30,17 @@ class FeedRepository(DB):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Not all fields filled'
             )
+
+    @classmethod
+    async def delete_post(cls, post_id: int):
+        """
+        delete post with all media
+        :param post_id:
+        :return:
+        """
+        await MediaRepository.del_post_media(post_id)
+        sql = f'delete from {cls.table_name} where id=$1'
+        await cls.con.execute(sql, post_id)
 
     @classmethod
     async def get_post_by_id(cls, post_id: int):
@@ -101,6 +114,7 @@ class FeedRepository(DB):
         :param new_title:
         :return:
         """
-        sql = f'update {cls.table_name} set title=$1,message=$2 where id=$3'
-        await cls.con.execute(sql, new_title, new_message, post_id)
+        time = datetime.datetime.utcnow()
+        sql = f'update {cls.table_name} set title=$1,message=$2,updated_at=$3 where id=$4'
+        await cls.con.execute(sql, new_title, new_message, time, post_id)
 

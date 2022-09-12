@@ -41,6 +41,18 @@ class MediaRepository(DB):
         await cls.con.execute(sql, author_id, post_id, uri, extension, 0, created_at)
 
     @classmethod
+    async def del_post_media(cls, post_id: int):
+        part_uri = DATA_PATH + f"{post_id}"
+        if os.path.exists(part_uri):
+            shutil.rmtree(part_uri)
+            os.mkdir(part_uri)
+        data = await cls.get_post_media(post_id)
+        if len(data) > 0:
+            sql = f'delete from {cls.table_name} where id=$1'
+            for media in data:
+                await cls.con.execute(sql, media['id'])
+
+    @classmethod
     async def add_all_media(cls, post_id: int, author_id: int, data: List[UploadFile]):
         """
         add all sent media to a post
@@ -51,11 +63,8 @@ class MediaRepository(DB):
         """
         if 0 < len(data) <= 10:
             part_uri = DATA_PATH + f"{post_id}"
-            if not os.path.exists(part_uri):
-                os.mkdir(part_uri)
-            else:
-                shutil.rmtree(part_uri)
-                os.mkdir(part_uri)
+            await cls.del_post_media(post_id)
+            os.mkdir(part_uri)
             media_i = 0
             for media in data:
                 media_i += 1

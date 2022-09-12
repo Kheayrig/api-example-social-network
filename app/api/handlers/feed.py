@@ -73,6 +73,20 @@ async def create_post(post: PostCreate = Body(..., embed=True)):
     )
 
 
+@router.delete("/feed/{post_id}", tags=["posts"], response_model=APIResponse)
+async def delete_post(post_id: int, access_token: str = Body(..., embed=True)):
+    """
+    delete post if authorized
+    """
+    user = await get_user_by_token(access_token)
+    await is_user_post(user['id'], post_id)
+    await FeedRepository.delete_post(post_id)
+    return JSONResponse(
+        status_code=status.HTTP_204_NO_CONTENT,
+        content="Post has been successfully deleted"
+    )
+
+
 @router.put("/feed/{post_id}/media", tags=["posts"], response_model=APIResponse)
 async def upload_media_to_post(media: List[UploadFile], post_id: int, access_token: str = Body(..., embed=True)):
     """
@@ -110,7 +124,7 @@ async def like_post(post_id: int, access_token: str = Body(..., embed=True)):
     await is_existed_post(post_id)
     await LikeRepository.like_post(user['id'], post_id)
     return JSONResponse(
-        status_code=status.HTTP_204_NO_CONTENT,
+        status_code=status.HTTP_202_ACCEPTED,
         content="You liked post"
     )
 
@@ -124,7 +138,7 @@ async def unlike_post(post_id: int, access_token: str = Body(..., embed=True)):
     await is_existed_post(post_id)
     await LikeRepository.unlike_post(user['id'], post_id)
     return JSONResponse(
-        status_code=status.HTTP_204_NO_CONTENT,
+        status_code=status.HTTP_202_ACCEPTED,
         content="You unliked post"
     )
 
