@@ -5,7 +5,6 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 
-from app.api.schema import Token
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 from app.db.repositories.feed_repository import FeedRepository
@@ -36,8 +35,7 @@ def verify_token(token: str, credentials_exception):
         login: str = payload.get("sub")
         if login is None:
             raise credentials_exception
-        token_data = Token(login=login)
-        return token_data
+        return login
     except JWTError:
         raise credentials_exception
 
