@@ -14,7 +14,7 @@ python -m uvicorn app.main:app
 
 <h2>Настройка</h2>
 
-configs - Конфиги подключения -> #server, #database, #data_path
+configs - Конфиги подключения -> #secret_key, #database, #data_path
 
 
 <h2>Пример работы</h2>
