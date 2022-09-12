@@ -80,6 +80,7 @@ async def delete_post(post_id: int, access_token: str = Body(..., embed=True)):
     """
     user = await get_user_by_token(access_token)
     await is_user_post(user['id'], post_id)
+    await MediaRepository.del_post_media(post_id)
     await FeedRepository.delete_post(post_id)
     return JSONResponse(
         status_code=status.HTTP_204_NO_CONTENT,

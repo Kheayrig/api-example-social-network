@@ -34,11 +34,10 @@ class FeedRepository(DB):
     @classmethod
     async def delete_post(cls, post_id: int):
         """
-        delete post with all media
+        delete post without media
         :param post_id:
         :return:
         """
-        await MediaRepository.del_post_media(post_id)
         sql = f'delete from {cls.table_name} where id=$1'
         await cls.con.execute(sql, post_id)
 
