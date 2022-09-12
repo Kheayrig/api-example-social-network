@@ -1,5 +1,4 @@
-from fastapi import FastAPI, HTTPException, status
-from starlette.requests import Request
+from fastapi import FastAPI, HTTPException, status, Request
 
 from app.db.base import DB
 from app.api.handlers.auth import router as auth_router
@@ -18,7 +17,8 @@ app.include_router(profile_router, prefix="/v1")
 @app.middleware('http')
 async def raise_server_exception(request: Request, call_next):
     try:
-        call_next(request)
+        response = await call_next(request)
+        return response
     except HTTPException as e:
         raise e
     except Exception as e:
