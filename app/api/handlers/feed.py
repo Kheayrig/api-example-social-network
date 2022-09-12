@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException, UploadFile, status, Body
+from fastapi import APIRouter, UploadFile, status, Body
 from fastapi.responses import JSONResponse
 
 from app.api.schema import PostCreate, APIResponse, Feed
@@ -19,8 +19,6 @@ async def get_recommended_feed(limit: int = 1):
     """
     get recommended feed, sorted by likes
     """
-    if FeedRepository.con is None:
-        await DB.connect_db()
     feed = await FeedRepository.get_recommended_posts(limit)
     for post in feed:
         if post['media_count'] > 0:
@@ -38,8 +36,6 @@ async def get_post(post_id: int):
     """
     get post by id
     """
-    if FeedRepository.con is None:
-        await DB.connect_db()
     feed = await is_existed_post(post_id)
     if feed['media_count'] > 0:
         media = await MediaRepository.get_post_media(post_id)
@@ -54,8 +50,6 @@ async def get_feed(limit: int = 1, page: int = 0):
     """
     get all feed by limit with paging(optional)
     """
-    if FeedRepository.con is None:
-        await DB.connect_db()
     feed = await FeedRepository.get_posts(limit, page)
     for post in feed:
         if post['media_count'] > 0:
@@ -71,8 +65,6 @@ async def create_post(post: PostCreate = Body(..., embed=True)):
     """
     Add new post if authorized
     """
-    if FeedRepository.con is None:
-        await DB.connect_db()
     user = await get_user_by_token(post.access_token)
     post_id = await FeedRepository.create_post(user['id'], post.title, post.message)
     return JSONResponse(
@@ -114,8 +106,6 @@ async def like_post(post_id: int, access_token: str = Body(..., embed=True)):
     """
     put a like to post if authorized
     """
-    if FeedRepository.con is None:
-        await DB.connect_db()
     user = await get_user_by_token(access_token)
     await is_existed_post(post_id)
     await LikeRepository.like_post(user['id'], post_id)
@@ -130,8 +120,6 @@ async def unlike_post(post_id: int, access_token: str = Body(..., embed=True)):
     """
     remove like from post if authorized
     """
-    if FeedRepository.con is None:
-        await DB.connect_db()
     user = await get_user_by_token(access_token)
     await is_existed_post(post_id)
     await LikeRepository.unlike_post(user['id'], post_id)

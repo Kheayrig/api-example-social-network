@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, Body, status
 from starlette.responses import JSONResponse
 
 from app.api.schema import User, ProfileSettings, APIResponse
 from app.api.security import get_password_hash, get_user_by_token
 
-from app.db.base import DB
 from app.db.repositories.users_repository import UserRepository
 
 router = APIRouter()
@@ -15,8 +14,6 @@ async def get_current_user(access_token: str):
     """
     get current user if authorized
     """
-    if UserRepository.con is None:
-        await DB.connect_db()
     user = await get_user_by_token(access_token)
     del user['hash']
     return user
@@ -27,8 +24,6 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True)):
     """
     update profile info/settings if authorized
     """
-    if UserRepository.con is None:
-        await DB.connect_db()
     user = await get_user_by_token(user_info.access_token)
     await UserRepository.update_names(user['id'], user_info.first_name, user_info.last_name)
     pwd = None

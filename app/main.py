@@ -17,6 +17,8 @@ app.include_router(profile_router, prefix="/v1")
 @app.middleware('http')
 async def raise_server_exception(request: Request, call_next):
     try:
+        if DB.con is None:
+            await DB.connect_db()
         response = await call_next(request)
         return response
     except HTTPException as e:
