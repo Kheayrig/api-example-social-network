@@ -2,12 +2,10 @@ from typing import List
 
 from fastapi import APIRouter, UploadFile, status, Body, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordBearer
 
 from app.api.schema import PostCreate, APIResponse, Feed
-from app.api.security import get_user_by_token, is_existed_post, is_user_post
+from app.api.security import get_user_by_token, is_existed_post, is_user_post, oauth2_scheme
 
-from app.db.base import DB
 from app.db.repositories.like_repository import LikeRepository
 from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.media_repository import MediaRepository
@@ -62,7 +60,8 @@ async def get_feed(limit: int = 1, page: int = 0):
 
 
 @router.post("/feed", tags=["posts"], response_model=APIResponse)
-async def create_post(post: PostCreate = Body(..., embed=True), access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def create_post(post: PostCreate = Body(..., embed=True),
+                      access_token: str = Depends(oauth2_scheme)):
     """
     Add new post if authorized
     """
@@ -75,7 +74,7 @@ async def create_post(post: PostCreate = Body(..., embed=True), access_token: st
 
 
 @router.delete("/feed/{post_id}", tags=["posts"], response_model=APIResponse)
-async def delete_post(post_id: int, access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def delete_post(post_id: int, access_token: str = Depends(oauth2_scheme)):
     """
     delete post if authorized
     """
@@ -90,7 +89,8 @@ async def delete_post(post_id: int, access_token: str = Depends(OAuth2PasswordBe
 
 
 @router.put("/feed/{post_id}/media", tags=["posts"], response_model=APIResponse)
-async def upload_media_to_post(media: List[UploadFile], post_id: int, access_token: str = Body(..., embed=True)):
+async def upload_media_to_post(media: List[UploadFile], post_id: int,
+                               access_token: str = Depends(oauth2_scheme)):
     """
     upload media to post if authorized
     """
@@ -104,7 +104,8 @@ async def upload_media_to_post(media: List[UploadFile], post_id: int, access_tok
 
 
 @router.put("/feed/{post_id}", tags=["posts"], response_model=APIResponse)
-async def update_post_message_and_title(post_id: int, post: PostCreate = Body(..., embed=True), access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def update_post_message_and_title(post_id: int, post: PostCreate = Body(..., embed=True),
+                                        access_token: str = Depends(oauth2_scheme)):
     """
     update message and title int the post if authorized
     """
@@ -118,7 +119,7 @@ async def update_post_message_and_title(post_id: int, post: PostCreate = Body(..
 
 
 @router.post("/feed/{post_id}/like", tags=["posts"], response_model=APIResponse)
-async def like_post(post_id: int, access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def like_post(post_id: int, access_token: str = Depends(oauth2_scheme)):
     """
     put a like to post if authorized
     """
@@ -132,7 +133,7 @@ async def like_post(post_id: int, access_token: str = Depends(OAuth2PasswordBear
 
 
 @router.post("/feed/{post_id}/unlike", tags=["posts"], response_model=APIResponse)
-async def unlike_post(post_id: int, access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def unlike_post(post_id: int, access_token: str = Depends(oauth2_scheme)):
     """
     remove like from post if authorized
     """

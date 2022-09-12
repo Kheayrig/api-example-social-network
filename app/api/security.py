@@ -11,6 +11,7 @@ from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.users_repository import UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 def verify_password(plain_password: str, hashed_password: str):
@@ -45,9 +46,6 @@ def verify_token(token: str, credentials_exception):
         raise credentials_exception
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-
 def get_current_user(data: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -57,7 +55,7 @@ def get_current_user(data: str = Depends(oauth2_scheme)):
     return verify_token(data, credentials_exception)
 
 
-def auth_check(access_token: str):
+def auth_check(access_token: str = Depends(oauth2_scheme)):
     if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -74,7 +72,7 @@ def auth_check(access_token: str):
         )
 
 
-async def get_user_by_token(access_token: str):
+async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
     login = auth_check(access_token)
     user = await UserRepository.get_user_by_login(login)
     if isinstance(user, dict):

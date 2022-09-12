@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Body, status, Depends
-from fastapi.security import OAuth2PasswordBearer
 from starlette.responses import JSONResponse
 
 from app.api.schema import User, ProfileSettings, APIResponse
-from app.api.security import get_password_hash, get_user_by_token, verify_password
+from app.api.security import get_password_hash, get_user_by_token, verify_password, get_current_user, oauth2_scheme
 from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.media_repository import MediaRepository
 
@@ -13,7 +12,15 @@ router = APIRouter()
 
 
 @router.get("/profile", response_model=User, tags=["profile"])
-async def get_current_user(access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def get_current_user(current_user: User = Depends(get_current_user)):
+    """
+    get current user if authorized
+    """
+    return current_user
+
+
+@router.get("/profile", response_model=User, tags=["profile"])
+async def get_current_user(access_token: str = Depends(oauth2_scheme)):
     """
     get current user if authorized
     """
@@ -23,7 +30,8 @@ async def get_current_user(access_token: str = Depends(OAuth2PasswordBearer(toke
 
 
 @router.put("/profile", tags=["profile"], response_model=APIResponse)
-async def update_profile(user_info: ProfileSettings = Body(..., embed=True), access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+async def update_profile(user_info: ProfileSettings = Body(..., embed=True),
+                         access_token: str = Depends(oauth2_scheme)):
     """
     update profile info/settings if authorized
     """
@@ -42,7 +50,7 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True), acc
 
 @router.delete("/profile", tags=["profile"], response_model=APIResponse)
 async def delete_profile(password: str = Body(..., embed=True),
-                         access_token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))):
+                         access_token: str = Depends(oauth2_scheme)):
     """
     delete profile if authorized
     """
