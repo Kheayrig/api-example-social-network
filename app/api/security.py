@@ -59,9 +59,9 @@ def auth_check(access_token: str):
             detail="You're not logged in",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    jwt = get_current_user(access_token)
-    if jwt.login is not None:
-        return jwt.login
+    login = get_current_user(access_token)
+    if login is not None:
+        return login
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

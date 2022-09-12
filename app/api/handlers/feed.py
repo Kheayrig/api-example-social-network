@@ -48,7 +48,7 @@ async def get_post(post_id: int):
 @router.get("/feed", tags=["posts"], response_model=List[Feed])
 async def get_feed(limit: int = 1, page: int = 0):
     """
-    get all feed by limit with paging(optional)
+    get all feed by limit with paging(optional), page starts from 0
     """
     feed = await FeedRepository.get_posts(limit, page)
     for post in feed:

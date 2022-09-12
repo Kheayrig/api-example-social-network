@@ -59,7 +59,7 @@ class FeedRepository(DB):
         return list(map(dict, res))
 
     @classmethod
-    async def get_posts(cls, limit: int = 10, page: int = 1):
+    async def get_posts(cls, limit: int = 10, page: int = 0):
         """
         get posts by limit with paging
         :param limit: optional, default = 10
