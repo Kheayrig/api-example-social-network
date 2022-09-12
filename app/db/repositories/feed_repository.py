@@ -1,10 +1,8 @@
 import datetime
 
 from fastapi import HTTPException, status
-from starlette.responses import JSONResponse
 
 from app.db.base import DB
-from app.db.repositories.media_repository import MediaRepository
 
 
 class FeedRepository(DB):
