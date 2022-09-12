@@ -27,6 +27,16 @@ class UserRepository(DB):
         await DB.con.execute(sql, login, password, first_name, last_name, time)
 
     @classmethod
+    async def delete_user_by_id(cls, user_id: int):
+        """
+        delete user by id
+        :param user_id:
+        :return:
+        """
+        sql = f"delete from {cls.table_name} where id=$1"
+        await cls.con.execute(sql, user_id)
+
+    @classmethod
     async def get_user_by_id(cls, user_id: int):
         """
         get user by id

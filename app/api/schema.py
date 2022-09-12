@@ -23,7 +23,7 @@ class Profile(UserIn):
 
 
 class ProfileSettings(Profile):
-    access_token: str
+    old_password: Optional[constr(min_length=8, max_length=128)]
 
 
 class BaseFeed(BaseModel):
@@ -52,7 +52,6 @@ class Feed(BaseFeed):
 
 
 class PostCreate(BaseModel):
-    access_token: str
     title: str
     message: str
 

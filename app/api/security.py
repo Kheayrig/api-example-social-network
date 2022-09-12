@@ -14,7 +14,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str):
-    return pwd_context.verify(plain_password, hashed_password)
+    res = pwd_context.verify(plain_password, hashed_password)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid password'
+        )
 
 
 def get_password_hash(password: str):

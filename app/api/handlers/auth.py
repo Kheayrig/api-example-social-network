@@ -16,11 +16,7 @@ async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     Authorization
     """
     user = await UserRepository.get_user_by_login(request.username)
-    if not verify_password(request.password, user['hash']):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Invalid Password'
-        )
+    verify_password(request.password, user['hash'])
     # Generate a JWT Token
     access_token = create_access_token(data={"sub": user['login']})
     message = {"access_token": access_token, "token_type": "bearer"}
