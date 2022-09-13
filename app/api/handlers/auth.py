@@ -33,9 +33,9 @@ async def registrate_new_user(user_form: RegistrationForm = Body(..., embed=True
         await UserRepository.create_user(user_form.login, get_password_hash(user_form.password),
                                          user_form.first_name, user_form.last_name)
         access_token = create_access_token(data={"sub": user_form.login})
-        message = {"access_token": access_token['token'], "token_type": "bearer"}
+        message = {"access_token": access_token, "token_type": "bearer"}
         return JSONResponse(
-            status_code=status.HTTP_200_OK,
+            status_code=status.HTTP_201_CREATED,
             content=str(message)
         )
     raise HTTPException(

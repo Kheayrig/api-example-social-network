@@ -52,3 +52,7 @@ async def delete_profile(password: str = Body(..., embed=True),
         await FeedRepository.delete_post(post['id'])
     await LikeRepository.delete_all_user_likes(current_user['id'])
     await UserRepository.delete_user_by_id(current_user['id'])
+    return JSONResponse(
+        status_code=status.HTTP_204_NO_CONTENT,
+        content='User has been successfully deleted'
+    )
