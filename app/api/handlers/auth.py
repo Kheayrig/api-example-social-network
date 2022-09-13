@@ -10,7 +10,7 @@ from app.db.repositories.users_repository import UserRepository
 router = APIRouter()
 
 
-@router.post('/login', tags=["auth"], response_model=APIResponse)
+@router.post('/auth', tags=["auth"], response_model=APIResponse)
 async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     """
     Authorization
@@ -19,11 +19,7 @@ async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     verify_password(request.password, user['hash'])
     # Generate a JWT Token
     access_token = create_access_token(data={"sub": user['login']})
-    message = {"access_token": access_token, "token_type": "bearer"}
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=str(message)
-    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/registration", tags=["auth"], response_model=APIResponse)

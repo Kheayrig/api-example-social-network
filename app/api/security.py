@@ -11,7 +11,7 @@ from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.users_repository import UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth")
 
 
 def verify_password(plain_password: str, hashed_password: str):
@@ -73,6 +73,7 @@ def auth_check(access_token: str = Depends(oauth2_scheme)):
 
 
 async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
+    print(access_token)
     login = auth_check(access_token)
     user = await UserRepository.get_user_by_login(login)
     if isinstance(user, dict):
