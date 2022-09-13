@@ -58,7 +58,7 @@ class Feed(BaseModel):
     author_id: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    media: List[Media] | []
+    media: List[Media]
 
 
 class PostCreate(BaseModel):
