@@ -15,10 +15,12 @@ async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     """
     Authorization
     """
+    print("start")
     user = await UserRepository.get_user_by_login(request.username)
     verify_password(request.password, user['hash'])
     # Generate a JWT Token
     access_token = create_access_token(data={"sub": user['login']})
+    print(access_token)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
