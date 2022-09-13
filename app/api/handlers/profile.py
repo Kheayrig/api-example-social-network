@@ -19,8 +19,8 @@ async def get_current_user(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.get("/profile", response_model=User, tags=["profile"])
-async def get_current_user(access_token: str = Depends(oauth2_scheme)):
+@router.get("/profile1", response_model=User, tags=["profile"])
+async def get_current_user1(access_token: str = Depends(oauth2_scheme)):
     """
     get current user if authorized
     """

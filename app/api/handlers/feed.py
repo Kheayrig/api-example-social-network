@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, UploadFile, status, Body, Depends
 from fastapi.responses import JSONResponse
 
-from app.api.schema import PostCreate, APIResponse, Feed
+from app.api.schema import PostCreate, APIResponse, Feed, User
 from app.api.security import get_user_by_token, is_existed_post, is_user_post, oauth2_scheme
 
 from app.db.repositories.like_repository import LikeRepository
@@ -61,11 +61,12 @@ async def get_feed(limit: int = 1, page: int = 0):
 
 @router.post("/feed", tags=["posts"], response_model=APIResponse)
 async def create_post(post: PostCreate = Body(..., embed=True),
-                      access_token: str = Depends(oauth2_scheme)):
+                      user: User = Depends(get_user_by_token)):
     """
     Add new post if authorized
     """
-    user = await get_user_by_token(access_token)
+    print(user)
+    #user = await get_user_by_token(access_token)
     post_id = await FeedRepository.create_post(user['id'], post.title, post.message)
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
