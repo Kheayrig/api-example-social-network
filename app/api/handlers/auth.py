@@ -10,12 +10,11 @@ from app.db.repositories.users_repository import UserRepository
 router = APIRouter()
 
 
-@router.post('/auth', tags=["auth"], response_model=APIResponse)
+@router.post('/auth', tags=["auth"])
 async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     """
     Authorization
     """
-    print("start")
     user = await UserRepository.get_user_by_login(request.username)
     verify_password(request.password, user['hash'])
     # Generate a JWT Token
