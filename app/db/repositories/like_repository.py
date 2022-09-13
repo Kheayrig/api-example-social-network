@@ -71,6 +71,11 @@ class LikeRepository(DB):
         return list(map(dict, res))
 
     @classmethod
+    async def delete_all_user_likes(cls, user_id: int):
+        sql = f'delete from {cls.table_name} where user_id=$1'
+        await cls.con.execute(sql, user_id)
+
+    @classmethod
     async def update_like_info(cls, post_id: int):
         """
         updated on the post's likes count

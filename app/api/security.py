@@ -73,11 +73,9 @@ def auth_check(access_token: str = Depends(oauth2_scheme)):
 
 
 async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
-    print(access_token)
     login = auth_check(access_token)
     user = await UserRepository.get_user_by_login(login)
     if isinstance(user, dict):
-        del user['hash']
         return user
     else:
         raise HTTPException(

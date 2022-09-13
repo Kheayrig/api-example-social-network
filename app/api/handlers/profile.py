@@ -4,6 +4,7 @@ from starlette.responses import JSONResponse
 from app.api.schema import APIResponse, Profile, ProfileSettings
 from app.api.security import get_password_hash, get_user_by_token, verify_password
 from app.db.repositories.feed_repository import FeedRepository
+from app.db.repositories.like_repository import LikeRepository
 from app.db.repositories.media_repository import MediaRepository
 
 from app.db.repositories.users_repository import UserRepository
@@ -49,4 +50,5 @@ async def delete_profile(password: str = Body(..., embed=True),
     for post in posts:
         await MediaRepository.del_post_media(post['id'])
         await FeedRepository.delete_post(post['id'])
+    await LikeRepository.delete_all_user_likes(current_user['id'])
     await UserRepository.delete_user_by_id(current_user['id'])
