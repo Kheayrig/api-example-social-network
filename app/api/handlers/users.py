@@ -14,4 +14,4 @@ async def get_user_by_id(user_id: int = 1):
     user = await UserRepository.get_user_by_id(user_id)
     del user['login']
     del user['hash']
-    return {**user}
+    return user

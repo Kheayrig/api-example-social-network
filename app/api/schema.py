@@ -15,26 +15,28 @@ class UserIn(BaseModel):
     password: Optional[constr(min_length=8, max_length=128)]
 
 
-class Profile(UserIn):
+class UserNames(BaseModel):
     first_name: Optional[str] = Field(min_length=2, max_length=35,
                             regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     last_name: Optional[str] = Field(min_length=2, max_length=35,
                            regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
 
 
-class ProfileSettings(Profile):
+class User(UserNames):
+    id: Optional[str]
+    created_at: datetime.datetime
+
+
+class Profile(User):
+    login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
+
+
+class ProfileSettings(UserNames, UserIn):
     old_password: Optional[constr(min_length=8, max_length=128)]
 
 
-class BaseFeed(BaseModel):
-    title: str
-    message: str
-    media_count: int
-    likes: int
-    id: Optional[str]
-    author_id: Optional[str]
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+class RegistrationForm(UserNames, UserIn):
+    pass
 
 
 class Media(BaseModel):
@@ -47,8 +49,16 @@ class Media(BaseModel):
     created_at: datetime.datetime
 
 
-class Feed(BaseFeed):
-    media: List[Media]
+class Feed(BaseModel):
+    title: str
+    message: str
+    media_count: int
+    likes: int
+    id: Optional[str]
+    author_id: Optional[str]
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    media: List[Media] | []
 
 
 class PostCreate(BaseModel):
@@ -56,11 +66,3 @@ class PostCreate(BaseModel):
     message: str
 
 
-class User(BaseModel):
-    id: Optional[str]
-    login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
-    first_name: Optional[str] = Field(min_length=2, max_length=35,
-                                      regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
-    last_name: Optional[str] = Field(min_length=2, max_length=35,
-                                     regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
-    created_at: datetime.datetime
