@@ -1,6 +1,7 @@
 from app.db.base import DB
 from app.db.repositories.feed_repository import FeedRepository
-from fastapi import status, HTTPException
+
+from app.main import log
 
 
 class LikeRepository(DB):
@@ -48,14 +49,10 @@ class LikeRepository(DB):
         :return: True or False
         """
         sql = f'select * from {cls.table_name} where user_id=$1 and post_id=$2'
-        try:
-            res = await cls.con.fetchrow(sql, user_id, post_id)
-            if res is None:
-                return False
-            return True
-        except Exception as e:
-            print(e)
+        res = await cls.con.fetchrow(sql, user_id, post_id)
+        if res is None:
             return False
+        return True
 
     @classmethod
     async def get_likes(cls, post_id: int):
@@ -89,4 +86,4 @@ class LikeRepository(DB):
         try:
             await cls.con.execute(sql, count, post_id)
         except Exception as e:
-            print(e)
+            log.warn(e, exc_info=True)

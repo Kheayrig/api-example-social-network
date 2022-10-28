@@ -50,7 +50,7 @@ def get_current_user(data: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token has been expired or revoked",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={"Authorization": "Bearer"},
     )
     return verify_token(data, credentials_exception)
 
@@ -96,9 +96,7 @@ async def is_existed_post(post_id: int):
 
 async def is_user_post(user_id: int, post_id: int):
     post = await is_existed_post(post_id)
-    if post['author_id'] == user_id:
-        return True
-    else:
+    if post['author_id'] != user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="You have no access to update this post"

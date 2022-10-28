@@ -7,6 +7,7 @@ from fastapi import UploadFile, HTTPException, status
 from app.config import DATA_PATH
 from app.db.base import DB
 from app.db.repositories.feed_repository import FeedRepository
+from app.main import log
 
 
 class MediaRepository(DB):
@@ -25,16 +26,10 @@ class MediaRepository(DB):
         """
         extension = os.path.splitext(media.filename)[1]
         uri = part_uri + f'/{i}{extension}'
-        try:
-            data = media.file.read()
-            with open(uri, mode='wb+') as f:
-                f.write(data)
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
-                detail='Something is wrong'
-            )
+
+        data = media.file.read()
+        with open(uri, mode='wb+') as f:
+            f.write(data)
 
         created_at = datetime.datetime.utcnow()
         sql = f'insert into {cls.table_name}(author_id,post_id,uri,extension,likes,created_at) values ($1,$2,$3,$4,$5,$6)'
@@ -101,7 +96,7 @@ class MediaRepository(DB):
         count = len(os.listdir(path_post_media))
         sql = f'update {FeedRepository.table_name} set media_count=$1 where id=$2'
 
-        try:
+        try: 
             await cls.con.execute(sql, count, post_id)
         except Exception as e:
-            print(e)
+            log.warn(e, exc_info=True)
