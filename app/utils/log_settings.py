@@ -16,3 +16,14 @@ class JSONFormatter(logging.Formatter):
             },
             ensure_ascii=False
         )
+
+
+log = logging.getLogger()
+log.setLevel("INFO")
+std_handler = logging.StreamHandler()
+std_handler.setFormatter(JSONFormatter())
+file_handler = logging.FileHandler(filename="aesn.log", mode="a")
+file_handler.setLevel(logging.WARNING)
+file_handler.setFormatter(JSONFormatter())
+log.addHandler(std_handler)
+log.addHandler(file_handler)

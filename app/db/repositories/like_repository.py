@@ -1,7 +1,7 @@
 from app.db.base import DB
 from app.db.repositories.feed_repository import FeedRepository
 
-from app.main import log
+from app.utils.log_settings import log
 
 
 class LikeRepository(DB):

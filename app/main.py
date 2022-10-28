@@ -6,7 +6,7 @@ from app.api.handlers.auth import router as auth_router
 from app.api.handlers.profile import router as profile_router
 from app.api.handlers.feed import router as feed_router
 from app.api.handlers.users import router as user_router
-from app.utils.log_settings import JSONFormatter
+from app.utils.log_settings import log
 
 app = FastAPI(title='Api-example (social network)')
 
@@ -14,16 +14,6 @@ app.include_router(user_router, prefix="/v1")
 app.include_router(auth_router, prefix="/v1")
 app.include_router(feed_router, prefix="/v1")
 app.include_router(profile_router, prefix="/v1")
-
-log = logging.getLogger()
-log.setLevel("INFO")
-std_handler = logging.StreamHandler()
-std_handler.setFormatter(JSONFormatter())
-file_handler = logging.FileHandler(filename="aesn.log", mode="a")
-file_handler.setLevel(logging.WARNING)
-file_handler.setFormatter(JSONFormatter())
-log.addHandler(std_handler)
-log.addHandler(file_handler)
 
 
 @app.middleware('http')

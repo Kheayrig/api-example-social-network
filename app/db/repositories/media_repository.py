@@ -7,7 +7,7 @@ from fastapi import UploadFile, HTTPException, status
 from app.config import DATA_PATH
 from app.db.base import DB
 from app.db.repositories.feed_repository import FeedRepository
-from app.main import log
+from app.utils.log_settings import log
 
 
 class MediaRepository(DB):
