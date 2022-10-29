@@ -7,7 +7,7 @@ from starlette import status
 
 class APIResponse(BaseModel):
     status_code: int = status.HTTP_200_OK
-    content: str
+    content: dict
 
 
 class UserIn(BaseModel):

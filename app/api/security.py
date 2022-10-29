@@ -63,13 +63,7 @@ def auth_check(access_token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     login = get_current_user(access_token)
-    if login is not None:
-        return login
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been expired or revoked"
-        )
+    return login
 
 
 async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):

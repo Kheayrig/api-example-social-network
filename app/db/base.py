@@ -18,7 +18,6 @@ class DB:
         try:
             cls.con = await asyncpg.connect(DATABASE_URL)
         except Exception as er:
-            print(er)
             cls.con = None
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -36,7 +35,6 @@ class DB:
         try:
             a = await cls.con.fetch("select table_name from information_schema.tables where table_schema='public'")
         except Exception as er:
-            print(er)
             await cls.disconnect_db()
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -46,7 +44,6 @@ class DB:
             try:
                 add_all_tables(DATABASE_URL)
             except Exception as er:
-                print(er)
                 await cls.disconnect_db()
                 raise HTTPException(
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,

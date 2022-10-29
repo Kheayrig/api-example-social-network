@@ -21,15 +21,7 @@ async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     # Generate a JWT Token
     access_token = create_access_token(data={"sub": user['login']})
     message = {"access_token": access_token, "token_type": "bearer"}
-    return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content=jsonable_encoder({
-                "payload": message,
-                "message": "Authorization has been succeeded",
-                "title": None,
-                "code": status.HTTP_200_OK
-            })
-        )
+    return message
 
 
 @router.post("/registration", tags=["auth"], response_model=APIResponse)
