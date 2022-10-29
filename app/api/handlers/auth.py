@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body, HTTPException, status, Depends
+from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.responses import JSONResponse
 
@@ -19,7 +20,16 @@ async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
     verify_password(request.password, user['hash'])
     # Generate a JWT Token
     access_token = create_access_token(data={"sub": user['login']})
-    return {"access_token": access_token, "token_type": "bearer"}
+    message = {"access_token": access_token, "token_type": "bearer"}
+    return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content=jsonable_encoder({
+                "payload": message,
+                "message": "Authorization has been succeeded",
+                "title": None,
+                "code": status.HTTP_200_OK
+            })
+        )
 
 
 @router.post("/registration", tags=["auth"], response_model=APIResponse)
@@ -36,7 +46,12 @@ async def registrate_new_user(user_form: RegistrationForm = Body(..., embed=True
         message = {"access_token": access_token, "token_type": "bearer"}
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            content=str(message)
+            content=jsonable_encoder({
+                "payload": message,
+                "message": "Registration has been succeeded",
+                "title": None,
+                "code": status.HTTP_201_CREATED
+            })
         )
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

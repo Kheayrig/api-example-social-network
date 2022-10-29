@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, UploadFile, status, Body, Depends
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from app.api.schema import PostCreate, APIResponse, Feed
@@ -27,7 +28,15 @@ async def get_recommended_feed(limit: int = 1):
             post['media'] = media
         else:
             post['media'] = []
-    return feed
+    return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=jsonable_encoder({
+                "payload": feed,
+                "message": "OK",
+                "title": None,
+                "code": status.HTTP_200_OK
+            })
+    )
 
 
 @router.get("/feed/{post_id}", tags=["posts"], response_model=Feed)
@@ -41,7 +50,15 @@ async def get_post(post_id: int):
         feed['media'] = media
     else:
         feed['media'] = []
-    return feed
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({
+                "payload": feed,
+                "message": "OK",
+                "title": None,
+                "code": status.HTTP_200_OK
+            })
+    )
 
 
 @router.get("/feed", tags=["posts"], response_model=List[Feed])
@@ -56,7 +73,15 @@ async def get_feed(limit: int = 1, page: int = 0):
             post['media'] = media
         else:
             post['media'] = []
-    return feed
+    return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=jsonable_encoder({
+                "payload": feed,
+                "message": "OK",
+                "title": None,
+                "code": status.HTTP_200_OK
+            })
+        )
 
 
 @router.post("/feed", tags=["posts"], response_model=APIResponse)
@@ -64,11 +89,17 @@ async def create_post(post: PostCreate = Body(..., embed=True),
                       current_user: dict = Depends(get_user_by_token)):
     """
     Add new post if authorized
+
     """
     post_id = await FeedRepository.create_post(current_user['id'], post.title, post.message)
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
-        content=f"Post(id={post_id}) has been created!"
+        content=jsonable_encoder({
+                "payload": post_id,
+                "message": f"Post(id={post_id}) has been created!",
+                "title": None,
+                "code": status.HTTP_201_CREATED
+            })
     )
 
 
@@ -81,9 +112,14 @@ async def delete_post(post_id: int, current_user: dict = Depends(get_user_by_tok
     await MediaRepository.del_post_media(post_id)
     await FeedRepository.delete_post(post_id)
     return JSONResponse(
-        status_code=status.HTTP_204_NO_CONTENT,
-        content="Post has been successfully deleted"
-    )
+            status_code=status.HTTP_204_NO_CONTENT,
+            content=jsonable_encoder({
+                "payload": None,
+                "message": "Post has been successfully deleted",
+                "title": None,
+                "code": status.HTTP_204_NO_CONTENT
+            })
+        )
 
 
 @router.put("/feed/{post_id}/media", tags=["posts"], response_model=APIResponse)
@@ -96,7 +132,12 @@ async def upload_media_to_post(media: List[UploadFile], post_id: int,
     await MediaRepository.add_all_media(post_id, current_user['id'], media)
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content="Media has been added to post"
+        content=jsonable_encoder({
+            "payload": None,
+            "message": "Media has been added to post",
+            "title": None,
+            "code": status.HTTP_200_OK
+        })
     )
 
 
@@ -110,7 +151,12 @@ async def update_post_message_and_title(post_id: int, post: PostCreate = Body(..
     await FeedRepository.update_post_message_title(post_id, post.message, post.title)
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content="Post info has been successfully updated"
+        content=jsonable_encoder({
+            "payload": None,
+            "message": "Post info has been successfully updated",
+            "title": None,
+            "code": status.HTTP_200_OK
+        })
     )
 
 
@@ -123,7 +169,12 @@ async def like_post(post_id: int, current_user: dict = Depends(get_user_by_token
     await LikeRepository.like_post(current_user['id'], post_id)
     return JSONResponse(
         status_code=status.HTTP_202_ACCEPTED,
-        content="You liked post"
+        content=jsonable_encoder({
+            "payload": None,
+            "message": "You liked post",
+            "title": None,
+            "code": status.HTTP_202_ACCEPTED
+        })
     )
 
 
@@ -136,6 +187,11 @@ async def unlike_post(post_id: int, current_user: dict = Depends(get_user_by_tok
     await LikeRepository.unlike_post(current_user['id'], post_id)
     return JSONResponse(
         status_code=status.HTTP_202_ACCEPTED,
-        content="You unliked post"
+        content=jsonable_encoder({
+            "payload": None,
+            "message": "You unliked post",
+            "title": None,
+            "code": status.HTTP_202_ACCEPTED
+        })
     )
 

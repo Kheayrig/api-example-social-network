@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body, status, Depends
+from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
 from app.api.schema import APIResponse, Profile, ProfileSettings
@@ -18,7 +19,15 @@ async def get_current_user(current_user: dict = Depends(get_user_by_token)):
     get current user if authorized
     """
     del current_user['hash']
-    return current_user
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({
+            "payload": current_user,
+            "message": "OK",
+            "title": None,
+            "code": status.HTTP_200_OK
+        })
+    )
 
 
 @router.put("/profile", tags=["profile"], response_model=APIResponse)
@@ -35,7 +44,12 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True),
     await UserRepository.update_data(current_user['id'], user_info.login, pwd)
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content="Information successfully changed"
+        content=jsonable_encoder({
+                "payload": None,
+                "message": "Information successfully changed",
+                "title": None,
+                "code": status.HTTP_200_OK
+            })
     )
 
 
@@ -54,5 +68,10 @@ async def delete_profile(password: str = Body(..., embed=True),
     await UserRepository.delete_user_by_id(current_user['id'])
     return JSONResponse(
         status_code=status.HTTP_204_NO_CONTENT,
-        content='User has been successfully deleted'
+        content=jsonable_encoder({
+                "payload": None,
+                "message": "User has been successfully deleted",
+                "title": None,
+                "code": status.HTTP_204_NO_CONTENT
+            })
     )
