@@ -68,7 +68,8 @@ def auth_check(access_token: str = Depends(oauth2_scheme)):
 
 async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
     login = auth_check(access_token)
-    user = await UserRepository.get_user_by_login(login)
+    user = await UserRepository.get_user_by_login(login, UserRepository.fields(
+        UserRepository.id, UserRepository.first_name, UserRepository.last_name, UserRepository.created_at))
     if isinstance(user, dict):
         return user
     else:
@@ -78,18 +79,8 @@ async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
         )
 
 
-async def is_existed_post(post_id: int):
-    is_existed = await FeedRepository.get_post_by_id(post_id)
-    if isinstance(is_existed, dict):
-        return is_existed
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Post not found"
-    )
-
-
 async def is_user_post(user_id: int, post_id: int):
-    post = await is_existed_post(post_id)
+    post = await FeedRepository.is_existed_post(post_id)
     if post['author_id'] != user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

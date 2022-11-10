@@ -6,37 +6,38 @@ from starlette import status
 
 
 class APIResponse(BaseModel):
-    status_code: int = status.HTTP_200_OK
-    content: dict
+    payload: dict | None
+    message: str
+    title: str | None
+    code: int | str
 
 
-class UserIn(BaseModel):
+class Auth(BaseModel):
     login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
     password: Optional[constr(min_length=8, max_length=128)]
 
 
-class UserNames(BaseModel):
+class RegistrationForm(Auth):
     first_name: Optional[str] = Field(min_length=2, max_length=35,
-                            regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
+                                      regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     last_name: Optional[str] = Field(min_length=2, max_length=35,
-                           regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
-
-
-class User(UserNames):
-    id: Optional[str]
-    created_at: datetime.datetime
-
-
-class Profile(User):
+                                     regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
     login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
 
 
-class ProfileSettings(UserNames, UserIn):
+class User(BaseModel):
+    id: Optional[str]
+    first_name: Optional[str] = Field(min_length=2, max_length=35,
+                                      regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
+    last_name: Optional[str] = Field(min_length=2, max_length=35,
+                                     regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
+    login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
+    created_at: datetime.datetime
+
+
+class ProfileSettings(User):
+    new_password: Optional[constr(min_length=8, max_length=128)]
     old_password: Optional[constr(min_length=8, max_length=128)]
-
-
-class RegistrationForm(UserNames, UserIn):
-    pass
 
 
 class Media(BaseModel):
@@ -50,11 +51,11 @@ class Media(BaseModel):
 
 
 class Feed(BaseModel):
+    id: int
     title: str
     message: str
     media_count: int
     likes: int
-    id: Optional[str]
     author_id: Optional[str]
     created_at: datetime.datetime
     updated_at: datetime.datetime

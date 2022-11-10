@@ -9,6 +9,10 @@ class DB:
     con: asyncpg.connection.Connection = None
     tablesCount: int = 4
 
+    @staticmethod
+    def fields(*args):
+        return ','.join(args)
+
     @classmethod
     async def connect_db(cls):
         """

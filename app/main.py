@@ -1,6 +1,8 @@
+import json
+
 from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.encoders import jsonable_encoder
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response, StreamingResponse
 
 from app.db.base import DB
 from app.api.handlers.auth import router as auth_router
@@ -31,20 +33,6 @@ async def custom_http_exception_handler(request, exc):
     )
 
 
-@app.exception_handler(ConnectionError)
-async def custom_connection_error_handler(request: Request, exc: ConnectionError):
-    log.critical(exc, exc_info=True)
-    return JSONResponse(
-        status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-        content=jsonable_encoder({
-              "payload": None,
-              "message": "Something is wrong, but we are fixing it...",
-              "title": None,
-              "code": status.HTTP_504_GATEWAY_TIMEOUT
-            })
-    )
-
-
 @app.exception_handler(Exception)
 async def custom_exception_handler(request: Request, exc: Exception):
     log.critical(exc, exc_info=True)
@@ -57,6 +45,30 @@ async def custom_exception_handler(request: Request, exc: Exception):
               "code": status.HTTP_500_INTERNAL_SERVER_ERROR
             })
     )
+
+
+@app.middleware('http')
+async def format_response(request: Request, call_next):
+    if request.headers['accept'] != 'application/json':
+        return await call_next(request)
+    response: StreamingResponse = await call_next(request)
+    status_code = response.status_code
+    if status_code < 300 and response.headers['content-type'] == 'application/json':
+        response_body = b""
+        async for chunk in response.body_iterator:
+            response_body += chunk
+        content = json.loads(response_body.decode('utf-8'))
+        return JSONResponse(
+            content=jsonable_encoder({
+                  "payload": content,
+                  "message": "OK",
+                  "title": None,
+                  "code": status_code
+                }),
+            status_code=status_code
+        )
+    else:
+        return response
 
 
 @app.on_event("startup")

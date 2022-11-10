@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, status, Depends
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
-from app.api.schema import APIResponse, Profile, ProfileSettings
+from app.api.schema import APIResponse, ProfileSettings, User
 from app.api.security import get_password_hash, get_user_by_token, verify_password
 from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.like_repository import LikeRepository
@@ -13,24 +13,15 @@ from app.db.repositories.users_repository import UserRepository
 router = APIRouter()
 
 
-@router.get("/profile", response_model=Profile, tags=["profile"])
+@router.get("/profile", response_model=User, tags=["profile"])
 async def get_current_user(current_user: dict = Depends(get_user_by_token)):
     """
     get current user if authorized
     """
-    del current_user['hash']
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=jsonable_encoder({
-            "payload": current_user,
-            "message": "OK",
-            "title": None,
-            "code": status.HTTP_200_OK
-        })
-    )
+    return current_user
 
 
-@router.put("/profile", tags=["profile"], response_model=APIResponse)
+@router.put("/profile", tags=["profile"], response_model=None)
 async def update_profile(user_info: ProfileSettings = Body(..., embed=True),
                          current_user: dict = Depends(get_user_by_token)):
     """
@@ -42,18 +33,10 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True),
     if user_info.password is not None:
         pwd = get_password_hash(user_info.password)
     await UserRepository.update_data(current_user['id'], user_info.login, pwd)
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=jsonable_encoder({
-                "payload": None,
-                "message": "Information successfully changed",
-                "title": None,
-                "code": status.HTTP_200_OK
-            })
-    )
+    return None
 
 
-@router.delete("/profile", tags=["profile"], response_model=APIResponse)
+@router.delete("/profile", tags=["profile"], response_model=None, status_code=status.HTTP_204_NO_CONTENT)
 async def delete_profile(password: str = Body(..., embed=True),
                          current_user: dict = Depends(get_user_by_token)):
     """

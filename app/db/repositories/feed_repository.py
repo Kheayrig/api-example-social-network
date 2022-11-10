@@ -1,5 +1,6 @@
 import datetime
 
+import asyncpg
 from fastapi import HTTPException, status
 
 from app.db.base import DB
@@ -40,13 +41,14 @@ class FeedRepository(DB):
         await cls.con.execute(sql, post_id)
 
     @classmethod
-    async def get_post_by_id(cls, post_id: int):
+    async def get_post(cls, post_id: int, field: str = 'id'):
         """
         get post by id
         :param post_id:
+        :param field:
         :return: dict()
         """
-        sql = f"select * from {cls.table_name} where id=$1"
+        sql = f"select * from {cls.table_name} where {field}=$1"
         res = await cls.con.fetchrow(sql, post_id)
         if res is None:
             raise HTTPException(
@@ -114,4 +116,15 @@ class FeedRepository(DB):
         time = datetime.datetime.utcnow()
         sql = f'update {cls.table_name} set title=$1,message=$2,updated_at=$3 where id=$4'
         await cls.con.execute(sql, new_title, new_message, time, post_id)
+
+    @classmethod
+    async def is_existed_post(cls, post_id: int, field: str = "id"):
+        sql = f"select exists(select 1 from {cls.table_name} where {field}=$1)"
+        res = await cls.con.fetchval(sql, post_id)
+        if not res:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Post not found"
+            )
+        return
 
