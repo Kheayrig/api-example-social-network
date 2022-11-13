@@ -29,9 +29,9 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True),
     """
     verify_password(user_info.old_password, current_user['hash'])
     data = user_info.dict(exclude_none=True)
-    if 'new_password' in data:
-        data['hash'] = get_password_hash(user_info.new_password)
-        del data['new_password']
+    if 'password' in data:
+        data['hash'] = get_password_hash(user_info.password)
+        del data['password']
     del data['old_password']
     await UserRepository.update_data(current_user['id'], data)
     return None
