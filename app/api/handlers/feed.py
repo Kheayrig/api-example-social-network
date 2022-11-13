@@ -28,15 +28,7 @@ async def get_recommended_feed(limit: int = 1):
             post['media'] = media
         else:
             post['media'] = []
-    return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=jsonable_encoder({
-                "payload": feed,
-                "message": "OK",
-                "title": None,
-                "code": status.HTTP_200_OK
-            })
-    )
+    return feed
 
 
 @router.get("/feed/{post_id}", tags=["posts"], response_model=Feed)
@@ -105,14 +97,14 @@ async def upload_media_to_post(media: List[UploadFile], post_id: int,
 async def update_post_message_and_title(post_id: int, post: PostCreate = Body(..., embed=True),
                                         current_user: dict = Depends(get_user_by_token)):
     """
-    update message and title int the post if authorized
+    update message and title in the post if authorized
     """
     await is_user_post(current_user['id'], post_id)
     await FeedRepository.update_post_message_title(post_id, post.message, post.title)
     return None
 
 
-@router.post("/feed/{post_id}/like", tags=["posts"], status_code=status.HTTP_202_ACCEPTED)
+@router.post("/feed/{post_id}/like", tags=["posts"], response_model=APIResponse, status_code=status.HTTP_202_ACCEPTED)
 async def like_post(post_id: int, current_user: dict = Depends(get_user_by_token)):
     """
     put a like to post if authorized
@@ -129,13 +121,5 @@ async def unlike_post(post_id: int, current_user: dict = Depends(get_user_by_tok
     """
     await FeedRepository.is_existed_post(post_id)
     await LikeRepository.unlike_post(current_user['id'], post_id)
-    return JSONResponse(
-        status_code=status.HTTP_202_ACCEPTED,
-        content=jsonable_encoder({
-            "payload": None,
-            "message": "You unliked post",
-            "title": None,
-            "code": status.HTTP_202_ACCEPTED
-        })
-    )
+    return {"message": "You unliked post"}
 

@@ -13,7 +13,8 @@ class UserRepository(DB):
     first_name = 'first_name'
     last_name = 'last_name'
     created_at = 'created_at'
-    all = DB.fields(id, login, hash, first_name, last_name, created_at)
+    create = DB.fields(login, hash, first_name, last_name, created_at)
+    update = DB.fields(login, hash, first_name, last_name)
 
     @classmethod
     async def create_user(cls, login: str, password: str, first_name: str = 'Noname', last_name: str = 'User'):
@@ -31,29 +32,31 @@ class UserRepository(DB):
         if first_name is None and last_name is None:
             first_name = 'Noname'
             last_name = 'User'
-        sql = f'insert into {cls.table_name}({cls.fields}) values ($1,$2,$3,$4,$5)'
+        sql = f'insert into {cls.table_name}({cls.create}) values ($1,$2,$3,$4,$5)'
         await DB.con.execute(sql, login, password, first_name, last_name, time)
 
     @classmethod
-    async def delete_user_by_id(cls, user_id: int):
+    async def delete_user(cls, value, field: str = id):
         """
-        delete user by id
-        :param user_id:
+        delete user by field
+        :param field:
+        :param value:
         :return:
         """
-        sql = f"delete from {cls.table_name} where {cls.id}=$1"
-        await cls.con.execute(sql, user_id)
+        sql = f"delete from {cls.table_name} where {field}=$1"
+        await cls.con.execute(sql, value)
 
     @classmethod
-    async def get_user_by_id(cls, user_id: int, fields: str = '*'):
+    async def get_user(cls, value, value_field: str = id, fields: str = '*') -> dict:
         """
-        get user by id
-        :param user_id:
+        get user by value
+        :param value:
+        :param value_field:
         :param fields:
         :return: dict()
         """
-        sql = f"select {fields} from {cls.table_name} where {cls.id}=$1"
-        res = await cls.con.fetchrow(sql, user_id)
+        sql = f"select {fields} from {cls.table_name} where {value_field}=$1"
+        res = await cls.con.fetchrow(sql, value)
         if res is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -62,74 +65,35 @@ class UserRepository(DB):
         return res
 
     @classmethod
-    async def get_user_by_login(cls, login: str, fields: str = '*'):
-        """
-        get user by login
-        :param login:
-        :return: dict()
-        """
-        sql = f"select {fields} from {cls.table_name} where {cls.login}=$1"
-        res = await cls.con.fetchrow(sql, login)
-        if res is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='User not found'
-            )
-        return res
-
-    @classmethod
-    async def is_user_existed(cls, field: str, login: str = '', id: int = 0):
+    async def is_user_existed(cls, field: str, login: str = '', user_id: int = 0):
         """
         check if user exists by login or id
         :param field:
         :param login:
-        :param id: optional
+        :param user_id: optional
         :return: user exist: nothing; user not exist: HTTPException(401)
         """
         sql = f"select exists(select 1 from {cls.table_name} where {field}=$1)"
-        res = await cls.con.fetchval(sql, login if field == cls.login else id)
+        res = await cls.con.fetchval(sql, login if field == cls.login else user_id)
         if not res:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Login not unique",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        return
 
     @classmethod
-    async def update_data(cls, user_id: int, new_login: str = None, new_password: str = None):
+    async def update_data(cls, user_id: int, fields: dict):
         """
         update user's login and/or password
-        :param new_login:  optional
         :param user_id:
-        :param new_password: optional
+        :param fields: dict of values for updating in the format (field:value)
         :return:
         """
-        if new_login is not None and new_password is not None:
-            sql = f'update {cls.table_name} set {cls.hash}=$1,{cls.login}=$2 where id=$3'
-            await cls.con.execute(sql, new_password, new_login, user_id)
-        elif new_password is not None:
-            sql = f'update {cls.table_name} set {cls.hash}=$1 where id=$2'
-            await cls.con.execute(sql, new_password, user_id)
-        elif new_login is not None:
-            sql = f'update {cls.table_name} set {cls.login}=$1 where id=$2'
-            await cls.con.execute(sql, new_login, user_id)
-
-    @classmethod
-    async def update_names(cls, user_id: int, new_first_name: str = None, new_last_name: str = None):
-        """
-        update user's first or/and last names
-        :param user_id:
-        :param new_first_name: optional
-        :param new_last_name: optional
-        :return:
-        """
-        if new_first_name is not None and new_last_name is not None:
-            sql = f'update {cls.table_name} set {cls.first_name}=$1,{cls.last_name}=$2 where {cls.id}=$3'
-            await cls.con.execute(sql, new_first_name, new_last_name, user_id)
-        elif new_last_name is not None:
-            sql = f'update {cls.table_name} set {cls.last_name}=$1 where {cls.id}=$2'
-            await cls.con.execute(sql, new_last_name, user_id)
-        elif new_first_name is not None:
-            sql = f'update {cls.table_name} set {cls.first_name}=$1 where {cls.id}=$2'
-            await cls.con.execute(sql, new_first_name, user_id)
+        i = 1
+        args = []
+        for field in fields:
+            args.append(f'{field}=${i}')
+            i += 1
+        sql = f'update {cls.table_name} set {DB.fields(*args)} where id=${i}'
+        await cls.con.execute(sql, *fields.values(), user_id)

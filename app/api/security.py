@@ -68,20 +68,13 @@ def auth_check(access_token: str = Depends(oauth2_scheme)):
 
 async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
     login = auth_check(access_token)
-    user = await UserRepository.get_user_by_login(login, UserRepository.fields(
-        UserRepository.id, UserRepository.first_name, UserRepository.last_name, UserRepository.created_at))
-    if isinstance(user, dict):
-        return user
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+    user = await UserRepository.get_user(login, UserRepository.login)
+    return user
 
 
 async def is_user_post(user_id: int, post_id: int):
-    post = await FeedRepository.is_existed_post(post_id)
-    if post['author_id'] != user_id:
+    author_id = await FeedRepository.get_post(post_id)
+    if author_id != user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="You have no access to update this post"

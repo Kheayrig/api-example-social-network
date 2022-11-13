@@ -28,11 +28,12 @@ async def update_profile(user_info: ProfileSettings = Body(..., embed=True),
     update profile info/settings if authorized
     """
     verify_password(user_info.old_password, current_user['hash'])
-    await UserRepository.update_names(current_user['id'], user_info.first_name, user_info.last_name)
-    pwd = None
-    if user_info.password is not None:
-        pwd = get_password_hash(user_info.password)
-    await UserRepository.update_data(current_user['id'], user_info.login, pwd)
+    data = user_info.dict(exclude_none=True)
+    if 'new_password' in data:
+        data['hash'] = get_password_hash(user_info.new_password)
+        del data['new_password']
+    del data['old_password']
+    await UserRepository.update_data(current_user['id'], data)
     return None
 
 
@@ -52,9 +53,9 @@ async def delete_profile(password: str = Body(..., embed=True),
     return JSONResponse(
         status_code=status.HTTP_204_NO_CONTENT,
         content=jsonable_encoder({
-                "payload": None,
-                "message": "User has been successfully deleted",
-                "title": None,
-                "code": status.HTTP_204_NO_CONTENT
-            })
+            "payload": None,
+            "message": "User has been successfully deleted",
+            "title": None,
+            "code": status.HTTP_204_NO_CONTENT
+        })
     )

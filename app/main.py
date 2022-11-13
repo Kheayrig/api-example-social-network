@@ -12,11 +12,11 @@ from app.api.handlers.users import router as user_router
 from app.utils.log_settings import log
 
 app = FastAPI(title='Api-example (social network)')
-
-app.include_router(user_router, prefix="/v1")
-app.include_router(auth_router, prefix="/v1")
-app.include_router(feed_router, prefix="/v1")
-app.include_router(profile_router, prefix="/v1")
+app.router.prefix = '/v1'
+app.include_router(user_router)
+app.include_router(auth_router)
+app.include_router(feed_router)
+app.include_router(profile_router)
 
 
 @app.exception_handler(HTTPException)

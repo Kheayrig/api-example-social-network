@@ -41,15 +41,16 @@ class FeedRepository(DB):
         await cls.con.execute(sql, post_id)
 
     @classmethod
-    async def get_post(cls, post_id: int, field: str = 'id'):
+    async def get_post(cls, by_field_value: int, by_field: str = 'id', fields: str = '*'):
         """
         get post by id
-        :param post_id:
-        :param field:
+        :param by_field_value: will get post by this field
+        :param by_field: will get post by this field
+        :param fields: will get this fields of post
         :return: dict()
         """
-        sql = f"select * from {cls.table_name} where {field}=$1"
-        res = await cls.con.fetchrow(sql, post_id)
+        sql = f"select {fields} from {cls.table_name} where {by_field}=$1"
+        res = await cls.con.fetchrow(sql, by_field)
         if res is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -71,7 +72,7 @@ class FeedRepository(DB):
         return list(map(dict, res))
 
     @classmethod
-    async def get_posts(cls, limit: int = 10, page: int = 0):
+    async def get_posts(cls, limit: int = 10, page: int = 0, fields: str = '*'):
         """
         get posts by limit with paging
         :param limit: optional, default = 10
@@ -79,7 +80,7 @@ class FeedRepository(DB):
         :return: list()
         """
         offset = page * limit
-        sql = f'select * from {cls.table_name} limit $1 offset $2'
+        sql = f'select {fields} from {cls.table_name} limit $1 offset $2'
         res = await cls.con.fetch(sql, limit, offset)
         if len(res) == 0:
             raise HTTPException(

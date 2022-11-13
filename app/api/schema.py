@@ -6,10 +6,12 @@ from starlette import status
 
 
 class APIResponse(BaseModel):
-    payload: dict | None
     message: str
-    title: str | None
-    code: int | str
+
+
+class AccessToken(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
 
 class Auth(BaseModel):
@@ -35,9 +37,14 @@ class User(BaseModel):
     created_at: datetime.datetime
 
 
-class ProfileSettings(User):
-    new_password: Optional[constr(min_length=8, max_length=128)]
-    old_password: Optional[constr(min_length=8, max_length=128)]
+class ProfileSettings(BaseModel):
+    first_name: Optional[str] = Field(min_length=2, max_length=35,
+                                      regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
+    last_name: Optional[str] = Field(min_length=2, max_length=35,
+                                     regex=r'^[A-Za-z]+((\s)?([A-Za-z])+)*$')
+    login: Optional[str] = Field(min_length=4, max_length=20, regex=r'^[a-z0-9_-]+$')
+    password: Optional[str] = Field(min_length=8, max_length=128)
+    old_password: str = Field(min_length=8, max_length=128)
 
 
 class Media(BaseModel):

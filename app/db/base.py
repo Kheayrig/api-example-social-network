@@ -35,7 +35,6 @@ class DB:
         connect to tables in db, create if found 0, else raise ConnectionRefusedError
         :return: True, False, ConnectionRefusedError
         """
-
         try:
             a = await cls.con.fetch("select table_name from information_schema.tables where table_schema='public'")
         except Exception as er:
@@ -53,7 +52,6 @@ class DB:
                     status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                     detail='Connection to tables is failed'
                 )
-
 
     @classmethod
     async def disconnect_db(cls):
