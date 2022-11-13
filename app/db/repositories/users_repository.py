@@ -13,8 +13,6 @@ class UserRepository(DB):
     first_name = 'first_name'
     last_name = 'last_name'
     created_at = 'created_at'
-    create = DB.fields(login, hash, first_name, last_name, created_at)
-    update = DB.fields(login, hash, first_name, last_name)
 
     @classmethod
     async def create_user(cls, login: str, password: str, first_name: str = 'Noname', last_name: str = 'User'):
@@ -32,13 +30,14 @@ class UserRepository(DB):
         if first_name is None and last_name is None:
             first_name = 'Noname'
             last_name = 'User'
-        sql = f'insert into {cls.table_name}({cls.create}) values ($1,$2,$3,$4,$5)'
-        await DB.con.execute(sql, login, password, first_name, last_name, time)
+        create_fields = DB.format_fields(cls.login, cls.hash, cls.first_name, cls.last_name, cls.created_at)
+        sql = f'insert into {cls.table_name}({create_fields}) values ($1,$2,$3,$4,$5) returning {cls.id}'
+        await DB.con.fetchval(sql, login, password, first_name, last_name, time)
 
     @classmethod
     async def delete_user(cls, value, field: str = id):
         """
-        delete user by field
+        delete user by value
         :param field:
         :param value:
         :return:
@@ -52,7 +51,7 @@ class UserRepository(DB):
         get user by value
         :param value:
         :param value_field:
-        :param fields:
+        :param fields: return fields
         :return: dict()
         """
         sql = f"select {fields} from {cls.table_name} where {value_field}=$1"
@@ -68,32 +67,31 @@ class UserRepository(DB):
     async def is_user_existed(cls, field: str, login: str = '', user_id: int = 0):
         """
         check if user exists by login or id
-        :param field:
-        :param login:
+        :param field: login or user_id
+        :param login: optional if user_id filled
         :param user_id: optional
-        :return: user exist: nothing; user not exist: HTTPException(401)
+        :return: user exist: nothing; user not exist: HTTPException(404)
         """
         sql = f"select exists(select 1 from {cls.table_name} where {field}=$1)"
         res = await cls.con.fetchval(sql, login if field == cls.login else user_id)
         if not res:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Login not unique",
-                headers={"WWW-Authenticate": "Bearer"},
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
             )
 
     @classmethod
-    async def update_data(cls, user_id: int, fields: dict):
+    async def update_data(cls, user_id: int, data: dict):
         """
-        update user's login and/or password
+        update user's data
         :param user_id:
-        :param fields: dict of values for updating in the format (field:value)
+        :param data: dict of values for updating in the format (field:value)
         :return:
         """
         i = 1
         args = []
-        for field in fields:
+        for field in data:
             args.append(f'{field}=${i}')
             i += 1
-        sql = f'update {cls.table_name} set {DB.fields(*args)} where id=${i}'
-        await cls.con.execute(sql, *fields.values(), user_id)
+        sql = f'update {cls.table_name} set {DB.format_fields(*args)} where {cls.id}=${i}'
+        await cls.con.execute(sql, *data.values(), user_id)

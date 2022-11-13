@@ -1,9 +1,6 @@
 from fastapi import APIRouter
-from fastapi.encoders import jsonable_encoder
-from starlette import status
-from starlette.responses import JSONResponse
 
-from app.api.schema import User, APIResponse
+from app.api.schema import User
 from app.db.repositories.users_repository import UserRepository
 
 router = APIRouter()
@@ -15,5 +12,5 @@ async def get_user_by_id(user_id: int = 1):
     """
     get user by id
     """
-    user = await UserRepository.get_user_by_id(user_id)
+    user = await UserRepository.get_user(user_id)
     return user

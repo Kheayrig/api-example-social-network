@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Body, status, Depends
-from fastapi.encoders import jsonable_encoder
-from starlette.responses import JSONResponse
 
-from app.api.schema import APIResponse, ProfileSettings, User
+from app.api.schema import ProfileSettings, User
 from app.api.security import get_password_hash, get_user_by_token, verify_password
 from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.like_repository import LikeRepository
@@ -49,13 +47,5 @@ async def delete_profile(password: str = Body(..., embed=True),
         await MediaRepository.del_post_media(post['id'])
         await FeedRepository.delete_post(post['id'])
     await LikeRepository.delete_all_user_likes(current_user['id'])
-    await UserRepository.delete_user_by_id(current_user['id'])
-    return JSONResponse(
-        status_code=status.HTTP_204_NO_CONTENT,
-        content=jsonable_encoder({
-            "payload": None,
-            "message": "User has been successfully deleted",
-            "title": None,
-            "code": status.HTTP_204_NO_CONTENT
-        })
-    )
+    await UserRepository.delete_user(current_user['id'])
+    return None

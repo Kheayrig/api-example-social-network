@@ -2,6 +2,8 @@ import datetime
 import os
 import shutil
 from typing import List
+
+import asyncpg
 from fastapi import UploadFile, HTTPException, status
 
 from app.config import DATA_PATH
@@ -12,6 +14,13 @@ from app.utils.log_settings import log
 
 class MediaRepository(DB):
     table_name: str = 'aesn_media'
+    id = 'id'
+    author_id = 'author_id'
+    post_id = 'post_id'
+    uri = 'uri'
+    extension = 'extension'
+    likes = 'likes'
+    created_at = 'created_at'
 
     @classmethod
     async def add_media(cls, author_id: int, post_id: int, media: UploadFile, i: int, part_uri: str):
@@ -32,7 +41,8 @@ class MediaRepository(DB):
             f.write(data)
 
         created_at = datetime.datetime.utcnow()
-        sql = f'insert into {cls.table_name}(author_id,post_id,uri,extension,likes,created_at) values ($1,$2,$3,$4,$5,$6)'
+        create_fields = cls.format_fields(cls.author_id, cls.post_id, cls.uri, cls.extension, cls.likes, cls.created_at)
+        sql = f'insert into {cls.table_name}({create_fields}) values ($1,$2,$3,$4,$5,$6)'
         await cls.con.execute(sql, author_id, post_id, uri, extension, 0, created_at)
 
     @classmethod
@@ -43,9 +53,9 @@ class MediaRepository(DB):
             os.mkdir(part_uri)
         data = await cls.get_post_media(post_id)
         if len(data) > 0:
-            sql = f'delete from {cls.table_name} where id=$1'
+            sql = f'delete from {cls.table_name} where {cls.id}=$1'
             for media in data:
-                await cls.con.execute(sql, media['id'])
+                await cls.con.execute(sql, media[{cls.id}])
 
     @classmethod
     async def add_all_media(cls, post_id: int, author_id: int, data: List[UploadFile]):
@@ -72,18 +82,18 @@ class MediaRepository(DB):
         )
 
     @classmethod
-    async def get_post_media(cls, post_id: int):
+    async def get_post_media(cls, post_id: int, fields: str = '*'):
         """
         get all post's media
         :param post_id:
+        :param fields:
         :return: list()
         """
-        sql = f'select * from {cls.table_name} where post_id=$1'
-
+        sql = f'select {fields} from {cls.table_name} where {cls.post_id}=$1'
         res = await cls.con.fetch(sql, post_id)
         if len(res) == 0:
             return []
-        return list(map(dict, res))
+        return res
 
     @classmethod
     async def update_media_count(cls, post_id):
@@ -94,7 +104,7 @@ class MediaRepository(DB):
         """
         path_post_media = DATA_PATH + f"{post_id}"
         count = len(os.listdir(path_post_media))
-        sql = f'update {FeedRepository.table_name} set media_count=$1 where id=$2'
+        sql = f'update {FeedRepository.table_name} set {cls.media_count}=$1 where {cls.id}=$2'
 
         try: 
             await cls.con.execute(sql, count, post_id)

@@ -8,6 +8,14 @@ from app.db.base import DB
 
 class FeedRepository(DB):
     table_name: str = 'aesn_feed'
+    id = 'id'
+    author_id = 'author_id'
+    title = 'title'
+    message = 'message'
+    media_count = 'media_count'
+    likes = 'likes'
+    created_at = 'created_at'
+    updated_at = 'updated_at'
 
     @classmethod
     async def create_post(cls, author_id: int, title: str, message: str):
@@ -16,60 +24,57 @@ class FeedRepository(DB):
         :param author_id:
         :param title:
         :param message:
-        :return: Id - success
+        :return: ID of new post
         """
         time = datetime.datetime.utcnow()
         count = 0
-        if message is not None and title is not None:
-            sql = f'insert into {cls.table_name}(author_id,title,message,media_count,likes,created_at,updated_at)' \
-                  f' values ($1,$2,$3,$4,$5,$6,$7) returning id'
-            return await cls.con.fetchval(sql, author_id, title, message, count, count, time, time)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail='Not all fields filled'
-            )
+        create_fields = cls.format_fields(cls.author_id, cls.title, cls.message, cls.media_count, cls.likes,
+                                          cls.created_at, cls.updated_at)
+        sql = f'insert into {cls.table_name}({create_fields})' \
+              f' values ($1,$2,$3,$4,$5,$6,$7) returning {cls.id}'
+        return await cls.con.fetchval(sql, author_id, title, message, count, count, time, time)
 
     @classmethod
     async def delete_post(cls, post_id: int):
         """
-        delete post without media
+        delete post without media by id
         :param post_id:
         :return:
         """
-        sql = f'delete from {cls.table_name} where id=$1'
+        sql = f'delete from {cls.table_name} where {cls.id}=$1'
         await cls.con.execute(sql, post_id)
 
     @classmethod
-    async def get_post(cls, by_field_value: int, by_field: str = 'id', fields: str = '*'):
+    async def get_post(cls, value: int, field: str = 'id', fields: str = '*'):
         """
-        get post by id
-        :param by_field_value: will get post by this field
-        :param by_field: will get post by this field
-        :param fields: will get this fields of post
+        get post by value
+        :param value:
+        :param field:
+        :param fields: return fields of post
         :return: dict()
         """
-        sql = f"select {fields} from {cls.table_name} where {by_field}=$1"
-        res = await cls.con.fetchrow(sql, by_field)
+        sql = f"select {fields} from {cls.table_name} where {field}=$1"
+        res = await cls.con.fetchrow(sql, value)
         if res is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Post not found'
             )
-        return dict(res)
+        return res
 
     @classmethod
-    async def get_user_posts(cls, user_id: int):
+    async def get_user_posts(cls, user_id: int, fields: str = '*'):
         """
         get all user's posts
         :param user_id:
+        :param fields:
         :return: list()
         """
-        sql = f"select * from {cls.table_name} where author_id=$1"
+        sql = f"select {fields} from {cls.table_name} where {cls.author_id}=$1"
         res = await cls.con.fetch(sql, user_id)
         if len(res) == 0:
             return []
-        return list(map(dict, res))
+        return res
 
     @classmethod
     async def get_posts(cls, limit: int = 10, page: int = 0, fields: str = '*'):
@@ -77,6 +82,7 @@ class FeedRepository(DB):
         get posts by limit with paging
         :param limit: optional, default = 10
         :param page: optional
+        :param fields:
         :return: list()
         """
         offset = page * limit
@@ -87,36 +93,41 @@ class FeedRepository(DB):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Posts not found'
             )
-        return list(map(dict, res))
+        return res
 
     @classmethod
-    async def get_recommended_posts(cls, limit: int = 10):
+    async def get_recommended_posts(cls, limit: int = 10, fields: str = '*'):
         """
         get recommended posts order by likes (desc)
         :param limit: optional, default = 10
+        :param fields:
         :return: list()
         """
-        sql = f'select * from {cls.table_name} order by likes desc limit $1'
+        sql = f'select {fields} from {cls.table_name} order by {cls.likes} desc limit $1'
         res = await cls.con.fetch(sql, limit)
         if len(res) == 0:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Posts not found'
             )
-        return list(map(dict, res))
+        return res
 
     @classmethod
-    async def update_post_message_title(cls, post_id: int, new_message: str = None, new_title: str = None):
+    async def update_post(cls, post_id: int, data: dict):
         """
         update post's message and/or title
         :param post_id:
-        :param new_message:
-        :param new_title:
+        :param data: dict of values for updating in the format (field:value)
         :return:
         """
-        time = datetime.datetime.utcnow()
-        sql = f'update {cls.table_name} set title=$1,message=$2,updated_at=$3 where id=$4'
-        await cls.con.execute(sql, new_title, new_message, time, post_id)
+        i = 1
+        args = []
+        data[cls.updated_at] = datetime.datetime.utcnow()
+        for field in data:
+            args.append(f'{field}=${i}')
+            i += 1
+        sql = f'update {cls.table_name} set {DB.format_fields(*args)} where {cls.id}=${i}'
+        await cls.con.execute(sql, *data.values(), post_id)
 
     @classmethod
     async def is_existed_post(cls, post_id: int, field: str = "id"):

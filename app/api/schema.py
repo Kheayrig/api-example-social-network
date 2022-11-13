@@ -2,11 +2,6 @@ import datetime
 from typing import Optional, List
 
 from pydantic import BaseModel, constr, Field
-from starlette import status
-
-
-class APIResponse(BaseModel):
-    message: str
 
 
 class AccessToken(BaseModel):

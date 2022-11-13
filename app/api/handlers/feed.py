@@ -1,10 +1,8 @@
 from typing import List
 
 from fastapi import APIRouter, UploadFile, status, Body, Depends
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 
-from app.api.schema import PostCreate, APIResponse, Feed
+from app.api.schema import PostCreate, Feed
 from app.api.security import get_user_by_token, is_user_post
 
 from app.db.repositories.like_repository import LikeRepository
@@ -20,6 +18,7 @@ async def get_recommended_feed(limit: int = 1):
     get recommended feed, sorted by likes
     """
     feed = await FeedRepository.get_recommended_posts(limit)
+    feed = list(map(dict, feed))
     for post in feed:
         if post['media_count'] > 0:
             media = await MediaRepository.get_post_media(post['id'])
@@ -36,7 +35,7 @@ async def get_post(post_id: int):
     """
     get post by id
     """
-    feed = await FeedRepository.get_post(post_id)
+    feed = dict(await FeedRepository.get_post(post_id))
     if feed['media_count'] > 0:
         media = await MediaRepository.get_post_media(post_id)
         feed['media'] = media
@@ -51,6 +50,7 @@ async def get_feed(limit: int = 1, page: int = 0):
     get all feed by limit with paging(optional), page starts from 0
     """
     feed = await FeedRepository.get_posts(limit, page)
+    feed = list(map(dict, feed))
     for post in feed:
         if post['media_count'] > 0:
             media = await MediaRepository.get_post_media(post['id'])
@@ -94,32 +94,33 @@ async def upload_media_to_post(media: List[UploadFile], post_id: int,
 
 
 @router.put("/feed/{post_id}", tags=["posts"], response_model=None)
-async def update_post_message_and_title(post_id: int, post: PostCreate = Body(..., embed=True),
-                                        current_user: dict = Depends(get_user_by_token)):
+async def update_post(post_id: int, post: PostCreate = Body(..., embed=True),
+                      current_user: dict = Depends(get_user_by_token)):
     """
     update message and title in the post if authorized
     """
     await is_user_post(current_user['id'], post_id)
-    await FeedRepository.update_post_message_title(post_id, post.message, post.title)
+    data = post.dict(exclude_none=True)
+    await FeedRepository.update_post(post_id, data)
     return None
 
 
-@router.post("/feed/{post_id}/like", tags=["posts"], response_model=APIResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post("/feed/{post_id}/like", tags=["posts"], response_model=None, status_code=status.HTTP_202_ACCEPTED)
 async def like_post(post_id: int, current_user: dict = Depends(get_user_by_token)):
     """
     put a like to post if authorized
     """
     await FeedRepository.is_existed_post(post_id)
     await LikeRepository.like_post(current_user['id'], post_id)
-    return {"message": "You liked post"}
+    return None
 
 
-@router.post("/feed/{post_id}/unlike", tags=["posts"], response_model=APIResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post("/feed/{post_id}/unlike", tags=["posts"], response_model=None, status_code=status.HTTP_202_ACCEPTED)
 async def unlike_post(post_id: int, current_user: dict = Depends(get_user_by_token)):
     """
     remove like from post if authorized
     """
     await FeedRepository.is_existed_post(post_id)
     await LikeRepository.unlike_post(current_user['id'], post_id)
-    return {"message": "You unliked post"}
+    return None
 

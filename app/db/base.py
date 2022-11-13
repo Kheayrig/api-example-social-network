@@ -10,7 +10,7 @@ class DB:
     tablesCount: int = 4
 
     @staticmethod
-    def fields(*args):
+    def format_fields(*args):
         return ','.join(args)
 
     @classmethod
