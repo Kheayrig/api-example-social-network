@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -11,7 +11,7 @@ from app.db.repositories.feed_repository import FeedRepository
 from app.db.repositories.users_repository import UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth")
+security = HTTPBearer()
 
 
 def verify_password(plain_password: str, hashed_password: str):
@@ -46,7 +46,7 @@ def verify_token(token: str, credentials_exception):
         raise credentials_exception
 
 
-def get_current_user(data: str = Depends(oauth2_scheme)):
+def get_current_user(data: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token has been expired or revoked",
@@ -55,7 +55,7 @@ def get_current_user(data: str = Depends(oauth2_scheme)):
     return verify_token(data, credentials_exception)
 
 
-def auth_check(access_token: str = Depends(oauth2_scheme)):
+def auth_check(access_token: str):
     if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -66,8 +66,8 @@ def auth_check(access_token: str = Depends(oauth2_scheme)):
     return login
 
 
-async def get_user_by_token(access_token: str = Depends(oauth2_scheme)):
-    login = auth_check(access_token)
+async def get_user_by_token(access_token: HTTPAuthorizationCredentials = Security(security)):
+    login = auth_check(access_token.credentials)
     user = await UserRepository.get_user(login, UserRepository.login)
     return user
 

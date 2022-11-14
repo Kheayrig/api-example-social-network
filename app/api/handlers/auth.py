@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.schema import RegistrationForm, AccessToken
+from app.api.schema import RegistrationForm, AccessToken, Auth
 from app.api.security import create_access_token, verify_password, get_password_hash
 
 from app.db.repositories.users_repository import UserRepository
@@ -10,11 +10,11 @@ router = APIRouter()
 
 
 @router.post('/auth', tags=["auth"], response_model=AccessToken)
-async def authorize_user(request: OAuth2PasswordRequestForm = Depends()):
+async def authorize_user(request: Auth = Depends()):
     """
     Authorization
     """
-    user = await UserRepository.get_user(request.username, UserRepository.login,
+    user = await UserRepository.get_user(request.login, UserRepository.login,
                                          UserRepository.format_fields(UserRepository.login, UserRepository.hash))
     verify_password(request.password, user['hash'])
     jwt = create_access_token(data={"sub": user['login']})
