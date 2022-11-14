@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status, Security
+from fastapi import HTTPException, status, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 

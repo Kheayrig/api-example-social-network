@@ -1,6 +1,5 @@
 import datetime
 
-import asyncpg
 from fastapi import HTTPException, status
 
 from app.db.base import DB

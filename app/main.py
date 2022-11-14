@@ -2,7 +2,7 @@ import json
 
 from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.encoders import jsonable_encoder
-from starlette.responses import JSONResponse, Response, StreamingResponse
+from starlette.responses import JSONResponse, StreamingResponse
 
 from app.db.base import DB
 from app.api.handlers.auth import router as auth_router

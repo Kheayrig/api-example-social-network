@@ -3,7 +3,6 @@ import os
 import shutil
 from typing import List
 
-import asyncpg
 from fastapi import UploadFile, HTTPException, status
 
 from app.config import DATA_PATH

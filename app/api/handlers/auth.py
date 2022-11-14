@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Body, Depends
-from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.schema import RegistrationForm, AccessToken, Auth
 from app.api.security import create_access_token, verify_password, get_password_hash
