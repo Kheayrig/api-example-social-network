@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body, Depends
+from starlette import status
 
 from app.api.schema import RegistrationForm, AccessToken, Auth
 from app.api.security import create_access_token, verify_password, get_password_hash
@@ -9,7 +10,7 @@ router = APIRouter()
 
 
 @router.post('/auth', tags=["auth"], response_model=AccessToken)
-async def authorize_user(request: Auth = Depends()):
+async def authorize_user(request: Auth = Body(..., embed=True)):
     """
     Authorization
     """
@@ -20,7 +21,7 @@ async def authorize_user(request: Auth = Depends()):
     return {"access_token": jwt, "token_type": "bearer"}
 
 
-@router.post("/registration", tags=["auth"])
+@router.post("/registration", tags=["auth"], status_code=status.HTTP_201_CREATED)
 async def registrate_new_user(user_form: RegistrationForm = Body(..., embed=True)):
     """
     Registration
