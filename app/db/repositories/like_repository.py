@@ -47,7 +47,7 @@ class LikeRepository(DB):
         :param user_id:
         :return: True or False
         """
-        sql = f"select exists(select 1 from {cls.table_name} where {cls.user_id}=$1 and {cls.post_id}=$2"
+        sql = f"select exists(select 1 from {cls.table_name} where {cls.user_id}=$1 and {cls.post_id}=$2)"
         res = await cls.con.fetchval(sql, user_id, post_id)
         return res
 
@@ -79,7 +79,7 @@ class LikeRepository(DB):
         """
         liked_data = await LikeRepository.get_likes(post_id)
         count = len(liked_data)
-        sql = f'update {FeedRepository.table_name} set {cls.likes}=$1 where {cls.id}=$2'
+        sql = f'update {FeedRepository.table_name} set {FeedRepository.likes}=$1 where {FeedRepository.id}=$2'
 
         try:
             await cls.con.execute(sql, count, post_id)
