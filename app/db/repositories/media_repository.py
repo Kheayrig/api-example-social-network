@@ -54,7 +54,7 @@ class MediaRepository(DB):
         if len(data) > 0:
             sql = f'delete from {cls.table_name} where {cls.id}=$1'
             for media in data:
-                await cls.con.execute(sql, media[{cls.id}])
+                await cls.con.execute(sql, media[cls.id])
 
     @classmethod
     async def add_all_media(cls, post_id: int, author_id: int, data: List[UploadFile]):
@@ -68,6 +68,8 @@ class MediaRepository(DB):
         if 0 < len(data) <= 10:
             part_uri = DATA_PATH + f"{post_id}"
             await cls.del_post_media(post_id)
+            if os.path.isdir(part_uri):
+                os.rmdir(part_uri)
             os.mkdir(part_uri)
             media_i = 0
             for media in data:
@@ -92,7 +94,7 @@ class MediaRepository(DB):
         res = await cls.con.fetch(sql, post_id)
         if len(res) == 0:
             return []
-        return res
+        return list(map(dict, res))
 
     @classmethod
     async def update_media_count(cls, post_id):
@@ -103,7 +105,7 @@ class MediaRepository(DB):
         """
         path_post_media = DATA_PATH + f"{post_id}"
         count = len(os.listdir(path_post_media))
-        sql = f'update {FeedRepository.table_name} set {cls.media_count}=$1 where {cls.id}=$2'
+        sql = f'update {FeedRepository.table_name} set {FeedRepository.media_count}=$1 where {FeedRepository.id}=$2'
 
         try: 
             await cls.con.execute(sql, count, post_id)

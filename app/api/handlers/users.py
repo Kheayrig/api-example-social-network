@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 @router.get("/users/{user_id}", response_model=User, tags=["users"],
-            status_code=200, response_model_exclude={'login'})
+            response_model_exclude={'login'})
 async def get_user_by_id(user_id: int = 1):
     """
     get user by id

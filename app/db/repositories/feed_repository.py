@@ -31,7 +31,8 @@ class FeedRepository(DB):
                                           cls.created_at, cls.updated_at)
         sql = f'insert into {cls.table_name}({create_fields})' \
               f' values ($1,$2,$3,$4,$5,$6,$7) returning {cls.id}'
-        return await cls.con.fetchval(sql, author_id, title, message, count, count, time, time)
+        res = await cls.con.fetchval(sql, author_id, title, message, count, count, time, time)
+        return res
 
     @classmethod
     async def delete_post(cls, post_id: int):
@@ -59,7 +60,7 @@ class FeedRepository(DB):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Post not found'
             )
-        return res
+        return dict(res)
 
     @classmethod
     async def get_user_posts(cls, user_id: int, fields: str = '*'):
@@ -73,7 +74,7 @@ class FeedRepository(DB):
         res = await cls.con.fetch(sql, user_id)
         if len(res) == 0:
             return []
-        return res
+        return list(map(dict, res))
 
     @classmethod
     async def get_posts(cls, limit: int = 10, page: int = 0, fields: str = '*'):
@@ -92,7 +93,7 @@ class FeedRepository(DB):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Posts not found'
             )
-        return res
+        return list(map(dict, res))
 
     @classmethod
     async def get_recommended_posts(cls, limit: int = 10, fields: str = '*'):
@@ -109,7 +110,7 @@ class FeedRepository(DB):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Posts not found'
             )
-        return res
+        return list(map(dict, res))
 
     @classmethod
     async def update_post(cls, post_id: int, data: dict):
@@ -137,5 +138,4 @@ class FeedRepository(DB):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Post not found"
             )
-        return
 

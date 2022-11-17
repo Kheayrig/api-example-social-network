@@ -53,18 +53,20 @@ async def format_response(request: Request, call_next):
         return await call_next(request)
     response: StreamingResponse = await call_next(request)
     status_code = response.status_code
-    if status_code < 300 and response.headers['content-type'] == 'application/json':
-        response_body = b""
-        async for chunk in response.body_iterator:
-            response_body += chunk
-        content = json.loads(response_body.decode('utf-8'))
+    if status_code < 300:
+        content = None
+        if 'content-type' in response.headers and response.headers['content-type'] == 'application/json':
+            response_body = b""
+            async for chunk in response.body_iterator:
+                response_body += chunk
+            content = json.loads(response_body.decode('utf-8'))
         return JSONResponse(
             content=jsonable_encoder({
-                  "payload": content,
-                  "message": "OK",
-                  "title": None,
-                  "code": status_code
-                }),
+                "payload": content,
+                "message": "OK",
+                "title": None,
+                "code": status_code
+            }),
             status_code=status_code
         )
     else:

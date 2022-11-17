@@ -1,6 +1,5 @@
 import datetime
 from typing import Optional, List
-
 from pydantic import BaseModel, constr, Field
 
 
@@ -54,14 +53,14 @@ class Media(BaseModel):
 
 class Feed(BaseModel):
     id: int
-    title: str
-    message: str
-    media_count: int
-    likes: int
-    author_id: Optional[str]
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-    media: List[Media]
+    title: str = None
+    message: str = None
+    media_count: int = None
+    likes: int = 0
+    author_id: Optional[str] = None
+    created_at: datetime.datetime = None
+    updated_at: datetime.datetime = None
+    media: List[Media] = []
 
 
 class PostCreate(BaseModel):

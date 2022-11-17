@@ -61,7 +61,7 @@ class UserRepository(DB):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='User not found'
             )
-        return res
+        return dict(res)
 
     @classmethod
     async def is_user_existed(cls, field: str, login: str = '', user_id: int = 0):

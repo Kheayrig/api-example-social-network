@@ -63,7 +63,7 @@ class LikeRepository(DB):
         res = await cls.con.fetch(sql, post_id)
         if len(res) == 0:
             return []
-        return res
+        return list(map(dict, res))
 
     @classmethod
     async def delete_all_user_likes(cls, user_id: int):

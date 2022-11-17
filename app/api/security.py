@@ -73,8 +73,8 @@ async def get_user_by_token(access_token: HTTPAuthorizationCredentials = Securit
 
 
 async def is_user_post(user_id: int, post_id: int):
-    author_id = await FeedRepository.get_post(post_id)
-    if author_id != user_id:
+    author_id = await FeedRepository.get_post(post_id, fields=FeedRepository.author_id)
+    if author_id['author_id'] != user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="You have no access to update this post"
